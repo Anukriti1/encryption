@@ -1,0 +1,128 @@
+CREATE TABLE Company
+(
+[Id] [bigint] IDENTITY(1,1) PRIMARY KEY;
+CompanyName nvarchar(100) NOT NULL
+)
+
+
+CREATE TABLE EmployeePincode (
+  [Id] int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  Pincode varchar(10) NOT NULL
+)
+
+
+CREATE TABLE Job (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  ScheduleTaskId int NOT NULL,
+  WSTime varchar(20) NOT NULL,
+  WETime varchar(20) NOT NULL,
+  UploadPhoto varbinary NOT NULL,
+  Status int NOT NULL
+)
+
+CREATE TABLE LoginUser (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  LoginUserId nvarchar(2000) NOT NULL,
+  LoginPassword nvarchar(2000) NOT NULL,
+  Emailid nvarchar(4000) NOT NULL
+)
+
+
+CREATE TABLE Project (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  ProjectName nvarchar(100) NOT NULL,
+  IsDeleteFlag bit NOT NULL
+)
+
+CREATE TABLE ScheduleTask (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  TaskDate datetime NOT NULL,
+  TaskName nvarchar(200) NOT NULL,
+  StartDateTime datetime NOT NULL,
+  EndDateTime datetime NOT NULL,
+  Hours decimal(9,0) NOT NULL,
+  ProjectId int NOT NULL,
+  Status int NOT NULL
+)
+
+
+CREATE TABLE Shift (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  Name nvarchar(100) NOT NULL,
+  StartDate varchar(10) NOT NULL,
+  EndDate varchar(10) NOT NULL
+)
+
+CREATE TABLE ShiftDetail (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  ShiftId int NOT NULL,
+  CycleType char(20) NOT NULL,
+  Day int NOT NULL,
+  ShiftTypeId int NOT NULL
+)
+
+
+CREATE TABLE ShiftEmployee (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  ShiftId int NOT NULL
+)
+
+CREATE TABLE ShiftType (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  Name nvarchar(100) NOT NULL,
+  ShiftInTime time NOT NULL,
+  ShiftOutTime time NOT NULL
+)
+
+CREATE TABLE TimeClockDetailData (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  TimeClockSummaryData_Id int NOT NULL,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  InTime varchar(16) NOT NULL,
+  OutTime varchar(16) NOT NULL,
+  InTimeLat varchar(50) NOT NULL,
+  InTimeLong varchar(50) NOT NULL,
+  OutTimeLat varchar(50) NOT NULL,
+  OutTimeLong varchar(50) NOT NULL
+)
+
+
+CREATE TABLE TimeClockManageLogData (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  TimeClockSummaryData_Id int NOT NULL,
+  Status int NOT NULL
+)
+
+CREATE TABLE TimeClockSummaryData (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  ClockInDate varchar(20) NOT NULL,
+  ClockInTime varchar(20) NOT NULL,
+  ClockOutDate varchar(20) NOT NULL,
+  ClockOutTime varchar(20) NOT NULL,
+  ShiftId int NOT NULL,
+  Status int NOT NULL
+)
+
+CREATE TABLE UserGroup (
+  Id bigint IDENTITY(1,1) PRIMARY KEY,
+  Description varchar(100) NOT NULL
+)
