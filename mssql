@@ -28,6 +28,7 @@ CREATE TABLE LoginUser (
   Id int IDENTITY(1,1) PRIMARY KEY,
   CompanyId bigint NOT NULL,
   EmployeeId bigint NOT NULL,
+  UserGroupId bigint NOT NULL,
   LoginUserId nvarchar(2000) NOT NULL,
   LoginPassword nvarchar(2000) NOT NULL,
   Emailid nvarchar(4000) NOT NULL
