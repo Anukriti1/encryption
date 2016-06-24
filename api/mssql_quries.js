@@ -17,12 +17,12 @@ exports.sqlServe = function(data,callbackRes){
 		if(data.query){
 			// cheking for input 
 			createReqInp(data.input,request,function(){
-				request.query(data.query, function(err, recordset) {
+				request.query(data.query, function(err, recordset,affected) {
 				    if(err){
 				    	console.log(err);
 				    	callbackRes({'message' : 'error in database query'});
 				    }
-				    callbackRes(recordset);
+				    callbackRes(recordset,affected);
 				});
 			})
 		} else {
