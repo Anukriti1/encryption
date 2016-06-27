@@ -48,9 +48,9 @@ CREATE TABLE ScheduleTask (
   EmployeeId bigint NOT NULL,
   TaskDate datetime NOT NULL,
   TaskName nvarchar(200) NOT NULL,
-  StartDateTime datetime NOT NULL,
-  EndDateTime datetime NOT NULL,
-  Hours decimal(9,0) NOT NULL,
+  StartDateTime datetime,
+  EndDateTime datetime,
+  Hours decimal(9,0),
   ProjectId int NOT NULL,
   Status int NOT NULL
 )

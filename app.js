@@ -12,23 +12,6 @@ app.use(function(req, res, next) {
 
 var port = process.env.PORT || 8085;
 
-// var mysql      = require('mysql');
-// var connection = mysql.createConnection({
-//   host     : 'localhost',
-//   user     : 'root',
-//   password : 'enbake123',
-//   database : 'e-scheduling'
-// });
- 
-// connection.connect();
- 
-// connection.query('SELECT * FROM Employees LEFT JOIN Company ON Employees.CompanyId = Company.Id', function(err, rows, fields) {
-//   if (err) throw err;
-//   //console.log('The solution is: ', rows[0].solution);
-//   console.log(rows)
-// });
- 
-
 require('./routes')(app);
 
 
@@ -38,8 +21,6 @@ app.get('/', function(req, res) {
 });
 
 app.post('/task', function(req, res) {
-	console.log('dfsgdf');
-	console.log(req.body);
 	if(req.body && req.body.username && req.body.password){
 		if(
 			(req.body.username == users.LoginUserId || req.body.username == users.Emailid)
