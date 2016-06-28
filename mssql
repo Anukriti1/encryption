@@ -1,7 +1,15 @@
 CREATE TABLE Company
 (
-[Id] [bigint] IDENTITY(1,1) PRIMARY KEY;
+[Id] [bigint] IDENTITY(1,1) PRIMARY KEY,
 CompanyName nvarchar(100) NOT NULL
+)
+
+CREATE TABLE Employees
+(
+[Id] [bigint] IDENTITY(1,1) PRIMARY KEY,
+EmployeeName nvarchar(100) NOT NULL,
+EmployeeCode nvarchar(100) NOT NULL,
+CompanyId bigint NOT NULL
 )
 
 
@@ -52,7 +60,8 @@ CREATE TABLE ScheduleTask (
   EndDateTime datetime,
   Hours decimal(9,0),
   ProjectId int NOT NULL,
-  Status int NOT NULL
+  Status int DEFAULT 0,
+  ApprovalStutas int DEFAULT 0
 )
 
 
