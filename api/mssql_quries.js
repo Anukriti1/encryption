@@ -5,7 +5,7 @@ var sql = require('mssql');
 var async = require('async');
 var db_config = require('../config/db_config');
 var connect_query = db_config.db.type+"://"+db_config.db.username+':'
-+db_config.db.password+'@'+db_config.db.host+'/'+db_config.db.database_name+'?connectionTimeout='+db_config.db.connectionTimeout+'&requestTimeout='+db_config.db.requestTimeout;
++db_config.db.password+'@'+db_config.db.host+'/'+db_config.db.database_name+'?connectionTimeout='+db_config.db.connectionTimeout+'&requestTimeout='+db_config.db.requestTimeout+'&pool='+db_config.db.pool;
 
 /**
 This is the root funtion for all queries from ms sql
