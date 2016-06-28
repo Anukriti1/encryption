@@ -22,7 +22,6 @@ var allProjects = function(req, res) {
 }
 // this api is for getting all employee list for a company
 var allEmp = function(req, res) {
-	// auth query with username/Password
 	if(req.body && req.body.CompanyId){
 		var data = {};
 		data.input = {'CompanyId':req.body.CompanyId};
@@ -36,6 +35,21 @@ var allEmp = function(req, res) {
 	}	
 }
 
+// this api is for getting all list of tasks for a company
+var listTask = function(req, res){
+	if(req.body && req.body.CompanyId){
+		console.log('here')
+		var data = {};
+		data.input = {'CompanyId': req.body.CompanyId};
+		data.query = 'SELECT * FROM ScheduleTask LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId  WHERE ScheduleTask.CompanyId = @CompanyId';
+		// sending queries to db
+		queryServe.sqlServe(data,function(resData){
+			res.status(200).json(resData);
+		});
+	} else {
+		res.status(401).json({});
+	}
+}
 // Create a task for multiple employees 
 /**Sample input
 var keys = ['CompanyId','EmployeeId','TaskDate','TaskName','StartDateTime','EndDateTime','Hours','ProjectId','Status']
@@ -103,7 +117,7 @@ function generateInputQuery(data,values,keys,callback){
 		callback(queryValues);
 	})
 }
-
+router.post('/listTask',listTask);
 router.post('/create_task',create_task);
 router.post('/allProjectsList',allProjects);
 router.post('/allEmp',allEmp);
