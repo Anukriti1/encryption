@@ -41,7 +41,7 @@ var listTask = function(req, res){
 		console.log('here')
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId};
-		data.query = 'SELECT * FROM ScheduleTask LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId  WHERE ScheduleTask.CompanyId = @CompanyId';
+		data.query = 'SELECT  ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);
