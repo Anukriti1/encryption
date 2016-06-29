@@ -38,7 +38,6 @@ var allEmp = function(req, res) {
 // this api is for getting all list of tasks for a company
 var listTask = function(req, res){
 	if(req.body && req.body.CompanyId){
-		console.log('here')
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId};
 		data.query = 'SELECT  ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId';

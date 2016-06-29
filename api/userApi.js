@@ -21,6 +21,23 @@ var logIn = function(req, res) {
 		res.status(401).json({});
 	}	
 }
+
+// this api is used for update device token
+var updateDeviceToken = function(req,res){
+	//UPDATE LoginUser SET DeviceToken = 'erewr' WHERE LoginUserId = 'test' AND LoginPassword = 'test'
+	if (req.body && req.body.username && req.body.password, req.body.deviceToken){
+		var data = {};
+		data.input = {'LoginUserId':req.body.username,'LoginPassword': req.body.password,'DeviceToken': req.body.deviceToken};
+		data.query = 'UPDATE LoginUser SET DeviceToken = @DeviceToken WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword';
+		// sending queries to db
+		queryServe.sqlServe(data,function(resData,affected){
+			res.status(200).json(affected);
+		});
+	} else {
+		res.status(401).json({});
+	}
+
+}
 // login with pin api
 var loginPin = function(req, res){
 	if(req.body && req.body.pin && req.body.username && req.body.password){
@@ -39,6 +56,7 @@ var loginPin = function(req, res){
 }
 
 // assign apis to router
+router.post('/updateToken', updateDeviceToken);
 router.post('/login', logIn);
 router.post('/loginPin', loginPin);
 module.exports = router;
