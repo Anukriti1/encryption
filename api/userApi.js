@@ -55,7 +55,25 @@ var loginPin = function(req, res){
 	}
 }
 
+// list for New/Hold tasks 
+var listUserTask = function(req, res){
+	if(req.body && req.body.CompanyId,req.body.EmployeeId){
+		var data = {};
+		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId};
+		data.query = 'SELECT  ScheduleTask.Id,ScheduleTask.CompanyId,ScheduleTask.EmployeeId,ScheduleTask.TaskDate,ScheduleTask.TaskName,ScheduleTask.ApprovalStatus '
+		+', Job.* , Project.ProjectName FROM ScheduleTask LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id'
+		+  ' WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.EmployeeId = @EmployeeId AND (Job.Status IN (0, 1) OR Job.Status IS NULL)';
+		// sending queries to db
+		queryServe.sqlServe(data,function(resData){
+			res.status(200).json(resData);
+		});
+	} else {
+		res.status(401).json({});
+	}
+}
+
 // assign apis to router
+router.post('/listUserTask', listUserTask);
 router.post('/updateToken', updateDeviceToken);
 router.post('/login', logIn);
 router.post('/loginPin', loginPin);
