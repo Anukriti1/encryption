@@ -47,7 +47,8 @@ CREATE TABLE Project (
   Id int IDENTITY(1,1) PRIMARY KEY,
   CompanyId bigint NOT NULL,
   ProjectName nvarchar(100) NOT NULL,
-  IsDeleteFlag bit NOT NULL
+  IsDeleteFlag bit NOT NULL,
+  IsEmergency bit DEFAULT 0
 )
 
 CREATE TABLE ScheduleTask (
@@ -61,7 +62,7 @@ CREATE TABLE ScheduleTask (
   Hours decimal(9,0),
   ProjectId int NOT NULL,
   Status int DEFAULT 0,
-  ApprovalStutas int DEFAULT 0
+  ApprovalStatus int DEFAULT 0
 )
 
 
