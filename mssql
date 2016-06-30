@@ -26,10 +26,11 @@ CREATE TABLE Job (
   CompanyId bigint NOT NULL,
   EmployeeId bigint NOT NULL,
   ScheduleTaskId int NOT NULL,
-  WSTime varchar(20) NOT NULL,
-  WETime varchar(20) NOT NULL,
-  UploadPhoto varbinary NOT NULL,
-  Status int NOT NULL
+  WSTime datetime,
+  WETime datetime,
+  WHTime datetime,
+  UploadPhoto varbinary,
+  Status int DEFAULT 0
 )
 
 CREATE TABLE LoginUser (
@@ -47,8 +48,7 @@ CREATE TABLE Project (
   Id int IDENTITY(1,1) PRIMARY KEY,
   CompanyId bigint NOT NULL,
   ProjectName nvarchar(100) NOT NULL,
-  IsDeleteFlag bit NOT NULL,
-  IsEmergency bit DEFAULT 0
+  IsDeleteFlag bit NOT NULL
 )
 
 CREATE TABLE ScheduleTask (
@@ -62,7 +62,8 @@ CREATE TABLE ScheduleTask (
   Hours decimal(9,0),
   ProjectId int NOT NULL,
   Status int DEFAULT 0,
-  ApprovalStatus int DEFAULT 0
+  ApprovalStatus int DEFAULT 0,
+  CreatedBy int
 )
 
 
