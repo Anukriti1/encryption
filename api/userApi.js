@@ -72,7 +72,39 @@ var listUserTask = function(req, res){
 	}
 }
 
+
+// for start a new task
+var startTask = function(req,res){
+	if(req.body && req.body.CompanyId,req.body.EmployeeId,req.body.ScheduleTaskId){
+		var data = {};
+		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId': req.body.EmployeeId,'ScheduleTaskId':req.body.ScheduleTaskId,'WSTime': timeRightNow()};
+		data.query = "INSERT INTO Job (CompanyId,EmployeeId,ScheduleTaskId,WSTime) VALUES (@CompanyId,@EmployeeId,@ScheduleTaskId,@WSTime)"
+		// sending queries to db
+		queryServe.sqlServe(data,function(resData,affected){
+			res.status(200).json(affected);
+		});
+	} else {
+		res.status(401).json({});
+	}
+}
+
+
+// getting time now string in M/d/yy HH:mm:ss format 
+
+function timeRightNow(){
+	Number.prototype.padLeft = function(base,chr){
+	   var  len = (String(base || 10).length - String(this).length)+1;
+	   return len > 0? new Array(len).join(chr || '0')+this : this;
+	}
+    var d = new Date;
+   	var dformat = [(d.getMonth()+1).padLeft(),d.getDate().padLeft(),d.getFullYear()].join('/')+' ' 
+    			  +[ d.getHours().padLeft(),d.getMinutes().padLeft(),d.getSeconds().padLeft()].join(':');
+    return dformat;     
+};
+
+
 // assign apis to router
+router.post('/startTask',startTask);
 router.post('/listUserTask', listUserTask);
 router.post('/updateToken', updateDeviceToken);
 router.post('/login', logIn);
