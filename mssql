@@ -30,7 +30,12 @@ CREATE TABLE Job (
   WETime datetime,
   WHTime datetime,
   UploadPhoto varbinary,
-  Status int DEFAULT 0
+  Status int DEFAULT 0,
+  WorkedHours decimal(9,4),
+  WSLatitude varchar(50),
+  WSLongitude varchar(50),
+  WELatitude varchar(50),
+  WELongitude varchar(50) 
 )
 
 CREATE TABLE LoginUser (
@@ -59,7 +64,7 @@ CREATE TABLE ScheduleTask (
   TaskName nvarchar(200) NOT NULL,
   StartDateTime datetime,
   EndDateTime datetime,
-  Hours decimal(9,0),
+  Hours decimal(9,2),
   ProjectId int NOT NULL,
   Status int DEFAULT 0,
   ApprovalStatus int DEFAULT 0,
