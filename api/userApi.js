@@ -72,7 +72,7 @@ var listUserTask = function(req, res){
 
 // for start a new task
 var startTask = function(req,res){
-	if(req.body && req.body.CompanyId,req.body.EmployeeId,req.body.ScheduleTaskId){
+	if(req.body && req.body.CompanyId && req.body.EmployeeId && req.body.ScheduleTaskId){
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId': req.body.EmployeeId,'ScheduleTaskId':req.body.ScheduleTaskId,'WSTime': new Date()};
 		if(req.body.CurrentPosition && req.body.CurrentPosition.latitude && req.body.CurrentPosition.longitude){
@@ -91,6 +91,16 @@ var startTask = function(req,res){
 	}
 }
 
+// Update status of task to scheduled task table 
+function updateScheduleTask(ScheduleTaskId,status,callback){
+	var data = {};
+	data.input = {'Status': status,'Id':ScheduleTaskId};
+	data.query = "UPDATE ScheduleTask SET Status = @Status WHERE Id = @Id";
+	queryServe.sqlServe(data,function(resData,affected){
+		callback(affected);
+	});
+}
+
 // for start a new task
 var holdTask = function(req,response){
 	if(req.body && req.body.ScheduleTaskId){
@@ -107,7 +117,9 @@ var holdTask = function(req,response){
 				data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time,'Status' : 1,'WorkedHours': WorkedHours};
 				data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
 				queryServe.sqlServe(data,function(resData,affected){
-					response.status(200).json(affected);
+					updateScheduleTask(req.body.ScheduleTaskId,1,function(){
+						response.status(200).json(affected);
+					})
 				});
 			} 
 			else if(res && res[0].WSTime){
@@ -116,7 +128,9 @@ var holdTask = function(req,response){
 				data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time,'Status' : 1,'WorkedHours': WorkedHours};
 				data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
 				queryServe.sqlServe(data,function(resData,affected){
-					response.status(200).json(affected);
+					updateScheduleTask(req.body.ScheduleTaskId,1,function(){
+						response.status(200).json(affected);
+					})
 				});
 			} else {
 				response.status(401).json({});
@@ -134,8 +148,68 @@ var resumeTask = function(req,response){
 		data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time,'Status' : 0};
 		data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status WHERE ScheduleTaskId = @ScheduleTaskId";
 		queryServe.sqlServe(data,function(resData,affected){
-			response.status(200).json(affected);
+			updateScheduleTask(req.body.ScheduleTaskId,0,function(){
+						response.status(200).json(affected);
+			})
 		});
+	} else {
+		response.status(401).json({});
+	}
+}
+
+var endTask = function(req,response){
+	if(req.body && req.body.ScheduleTaskId){
+		var time = new Date;
+		var input = {};
+		input.input = {'ScheduleTaskId':req.body.ScheduleTaskId};
+		input.query = "SELECT WSTime, WHTime, WorkedHours from Job  WHERE ScheduleTaskId = @ScheduleTaskId";
+		queryServe.sqlServe(input,function(res,aff){
+			if(res && res[0].WHTime){
+				var WorkedHours = parseFloat(res[0].WorkedHours);
+				WorkedHours = WorkedHours + parseFloat((time - res[0].WHTime)/(3600000));
+				WorkedHours = WorkedHours.toString();
+				var data = {};
+				if(req.body.CurrentPosition && req.body.CurrentPosition.latitude && req.body.CurrentPosition.longitude){
+					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time, 'Status' : 2,'WorkedHours': WorkedHours,
+									'WELatitude' : req.body.CurrentPosition.latitude.toString(), 'WELongitude': req.body.CurrentPosition.longitude.toString()};
+					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status, "
+								+"WETime = @WETime, WorkedHours = @WorkedHours, "
+								+"WELatitude = @WELatitude, WELongitude = @WELongitude "
+								+"WHERE ScheduleTaskId = @ScheduleTaskId";
+				} else {
+					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time, 'Status' : 2,'WorkedHours': WorkedHours};
+					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status, WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
+				}
+				queryServe.sqlServe(data,function(resData,affected){
+					updateScheduleTask(req.body.ScheduleTaskId,2,function(){
+						response.status(200).json(affected);
+					})
+				});
+			} 
+			else if(res && res[0].WSTime){
+				var WorkedHours = ((time - res[0].WSTime)/(3600000)).toString();
+				var data = {};
+				if(req.body.CurrentPosition && req.body.CurrentPosition.latitude && req.body.CurrentPosition.longitude){
+					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time,
+								'Status' : 2,'WorkedHours': WorkedHours, 'WELatitude' : req.body.CurrentPosition.latitude.toString(),
+								'WELongitude': req.body.CurrentPosition.longitude.toString()};
+					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status,  WETime = @WETime, "
+								+"WorkedHours = @WorkedHours ,"
+								+"WELatitude = @WELatitude, WELongitude = @WELongitude "
+								+"WHERE ScheduleTaskId = @ScheduleTaskId";
+				} else {
+					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time,'Status' : 2,'WorkedHours': WorkedHours};
+					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status,  WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
+				}		
+				queryServe.sqlServe(data,function(resData,affected){
+					updateScheduleTask(req.body.ScheduleTaskId,2,function(){
+						response.status(200).json(affected);
+					})
+				});
+			} else {
+				response.status(401).json({});
+			}
+		})
 	} else {
 		response.status(401).json({});
 	}
@@ -143,6 +217,7 @@ var resumeTask = function(req,response){
 
 // assign apis to router
 router.post('/holdTask',holdTask);
+router.post('/endTask',endTask);
 router.post('/startTask',startTask);
 router.post('/resumeTask',resumeTask);
 router.post('/listUserTask', listUserTask);
