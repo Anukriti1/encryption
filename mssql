@@ -68,7 +68,8 @@ CREATE TABLE ScheduleTask (
   ProjectId int NOT NULL,
   Status int DEFAULT 0,
   ApprovalStatus int DEFAULT 0,
-  CreatedBy int
+  CreatedBy int, 
+  ApproveOrRejectBy int
 )
 
 
