@@ -2,7 +2,8 @@
 
 var express = require('express');
 var router = express.Router();
-var queryServe =  require('./mssql_quries.js');
+var queryServe =  require('./mssql_quries');
+var sendPush =  require('./notification');
 var async = require('async');
 
 // All project list for a compnay
@@ -50,13 +51,6 @@ var listTask = function(req, res){
 	}
 }
 // Create a task for multiple employees 
-/**Sample input
-var keys = ['CompanyId','EmployeeId','TaskDate','TaskName','StartDateTime','EndDateTime','Hours','ProjectId','Status']
-var values = [
-	[1,1,'06/01/2016 00:00:00','test','06/01/2016 14:00:00','06/01/2016 13:00:00',1.5,2,0],
-	[1,2,'06/01/2016 00:00:00','test1','07/01/2016 14:00:00','07/01/2016 13:00:00',2,1,1]
-];
-**/
 
 var create_task = function(req, res){
 	if(req.body.keys && req.body.values){
@@ -116,6 +110,57 @@ function generateInputQuery(data,values,keys,callback){
 		callback(queryValues);
 	})
 }
+
+// accept or reject by a manager
+var approveOrReject = function(req, res){
+	if(req.body && req.body.ApprovalStatus && req.body.ScheduleTaskId 
+		&& req.body.ApproveOrRejectBy && req.body.EmployeeId && req.body.TaskName){
+		var data = {};
+		data.input = {
+			'ApprovalStatus': req.body.ApprovalStatus,
+			'Id': req.body.ScheduleTaskId, 
+			'ApproveOrRejectBy' : req.body.ApproveOrRejectBy
+		};
+		data.query = "UPDATE ScheduleTask SET ApprovalStatus = @ApprovalStatus, "+
+					"ApproveOrRejectBy = @ApproveOrRejectBy"
+					+"  WHERE Id = @Id";
+		queryServe.sqlServe(data,function(resData,affected){
+			var searchtoken = {};
+			searchtoken.input = { 'Id1' : req.body.EmployeeId, 'Id2' : req.body.ApproveOrRejectBy};
+			searchtoken.query = "SELECT DeviceToken From LoginUser WHERE EmployeeId IN (@Id1,@Id2)";
+			queryServe.sqlServe(searchtoken,function(resDataTokens){
+				var statusAR = (req.body.ApprovalStatus == 1) ? "Approved":"Rejected";
+				var message = 'Task: '+ req.body.TaskName+' is '+statusAR;
+				sendPushNot(resDataTokens,message,function(data){
+					res.status(200).json({'affected': affected});
+				})	
+			})
+		});
+	} else {
+		res.status(401).json({});
+	}
+}
+
+function sendPushNot(resDataTokens,message,callback){
+	var tokens = [];
+	console.log(resDataTokens)
+	async.forEach(resDataTokens,function(item, callbackA){
+		if((!(item.DeviceToken == null) && item.DeviceToken )){
+			tokens.push(item.DeviceToken)
+			callbackA();
+		} else {
+			callbackA();
+		}
+	},function(){
+		console.log(tokens);
+		sendPush.send_gcm(message,tokens,function(data){
+			callback(data)
+		})
+	})
+}
+
+
+router.post('/approveOrReject',approveOrReject);
 router.post('/listTask',listTask);
 router.post('/create_task',create_task);
 router.post('/allProjectsList',allProjects);
