@@ -223,14 +223,95 @@ var endTask = function(req,response){
 var clockInStatus = function(req,response){
 	if(req.body.EmployeeId){
 		var data = {};
-		data.input = {'EmployeeId': req.body.EmployeeId,'ClockInDate' : new Date() };
-		data.query = "SELECT * from TimeClockSummaryData  WHERE EmployeeId = @EmployeeId AND ClockInDate = @ClockInDate";
+		data.input = {'EmployeeId': req.body.EmployeeId};
+		data.query = "SELECT TOP 1 * from TimeClockDetailData  WHERE EmployeeId = @EmployeeId ORDER BY InTime DESC";
 		queryServe.sqlServe(data,function(resData,affected){
 			response.status(200).json(resData);
 		})
 	} else {
 		response.status(401).json({});	
 	}
+}
+
+		
+// time clock api 
+var clockInOut = function(){
+	var data = {};
+	var d = new Date();
+	data.input = {
+		EmployeeId : 2
+	};
+	// 1 for punch in 2 for punchout
+	var clockAction = 2;
+	// for clock in 
+	if(clockAction == 1){
+		data.query = "SELECT TOP 1 * from TimeClockSummaryData WHERE EmployeeId = @EmployeeId ORDER BY ClockInDate DESC;";
+		queryServe.sqlServe(data,function(resData,affected){
+			if(!resData) {}
+			if(resData){
+				if(resData.length == 0){
+					var input = {};
+					input.input = {CompanyId : 1,EmployeeId : 2, ClockInDate : new Date(),ClockInTime : new Date()};
+					input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime);"
+					queryServe.sqlServe(input,function(resData1,affected1){
+						console.log(affected1)
+					})
+				} else {
+					getDbServerDateToday(function(dateData){
+						if(Date.parse(resData[0].ClockInDate) == Date.parse(dateData[0].CurrentDateTime)){
+							// same date record exists
+						} else {
+							//record is not exists for the same date
+							var input = {};
+							input.input = {CompanyId : 1,EmployeeId : 2, ClockInDate : new Date(),ClockInTime : new Date()};
+							input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime);"
+							queryServe.sqlServe(input,function(resData1,affected1){
+								console.log(affected1)
+							})
+						}
+					})
+				}
+			}
+		})
+	}
+	// for clock out 
+	if(clockAction == 2){
+		data.query = "SELECT TOP 1 * from TimeClockSummaryData WHERE EmployeeId = @EmployeeId ORDER BY ClockInDate DESC;";
+		queryServe.sqlServe(data,function(resData,affected){
+			if(!resData) {}
+			if(resData){
+				if(resData.length == 0){
+					// not punch in yet
+				} else {
+					getDbServerDateToday(function(dateData){
+						if(Date.parse(resData[0].ClockInDate) == Date.parse(dateData[0].CurrentDateTime)){
+							console.log(resData[0]);
+							// update table for punch out
+							var data = {};
+							data.input = {'ClockOutDate':d,'ClockOutTime': d,'Id': resData[0].Id};
+							data.query = 'UPDATE TimeClockSummaryData SET ClockOutDate = @ClockOutDate, ClockOutTime = @ClockOutTime WHERE Id = @Id';	
+							queryServe.sqlServe(data,function(resData3,affected3){
+								console.log(affected3)
+							})
+						} else {
+							// Not punch in today yet
+						}
+					})
+				}
+			}
+		})
+	}		
+}
+
+// clockInOut();
+
+// db server date today
+function getDbServerDateToday (callback) {
+	var input = {};
+	input.query = "SELECT DATEADD(day, DATEDIFF(day, 0, GETDATE()), 0) AS CurrentDateTime";
+	queryServe.sqlServe(input,function(resData2){
+		callback(resData2)
+	})
 }
 
 // assign apis to router
