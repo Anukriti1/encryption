@@ -20,35 +20,6 @@ app.get('/', function(req, res) {
   res.send('hello world');
 });
 
-app.post('/task', function(req, res) {
-	if(req.body && req.body.username && req.body.password){
-		if(
-			(req.body.username == users.LoginUserId || req.body.username == users.Emailid)
-			&& (req.body.password == users.LoginPassword)
-		)
-		{
-			res.status(200).json(tasks);
-		} else {
-			res.status(401).json({});
-		}
-	} else {
-		res.status(401).json({});
-	}
-  	
-});
- var tasks = [
-  {
-    id: 1,
-    name: "T1"
-  }, {
-    id: 2,
-    name: 'T2'
-  }, {
-    id: 3,
-    name: 'T3',
-  }
-];
-
 // Start server
 var server = app.listen(port, function () {
 	var host = server.address().address
