@@ -219,7 +219,21 @@ var endTask = function(req,response){
 	}
 }
 
+var clockInStatus = function(req,response){
+	if(req.body.EmployeeId){
+		var data = {};
+		data.input = {'EmployeeId': 2,'ClockInDate' : new Date() };
+		data.query = "SELECT * from TimeClockSummaryData  WHERE EmployeeId = @EmployeeId AND ClockInDate = @ClockInDate";
+		queryServe.sqlServe(data,function(resData,affected){
+			response.status(200).json(resData);
+		})
+	} else {
+		response.status(401).json({});	
+	}
+}
+
 // assign apis to router
+router.post('/clockInStatus',clockInStatus);
 router.post('/holdTask',holdTask);
 router.post('/endTask',endTask);
 router.post('/startTask',startTask);
