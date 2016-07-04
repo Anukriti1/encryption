@@ -130,14 +130,14 @@ CREATE TABLE TimeClockManageLogData (
 
 CREATE TABLE TimeClockSummaryData (
   Id int IDENTITY(1,1) PRIMARY KEY,
-  CompanyId bigint NOT NULL,
-  EmployeeId bigint NOT NULL,
-  ClockInDate varchar(20) NOT NULL,
-  ClockInTime varchar(20) NOT NULL,
-  ClockOutDate varchar(20) NOT NULL,
-  ClockOutTime varchar(20) NOT NULL,
-  ShiftId int NOT NULL,
-  Status int NOT NULL
+  CompanyId bigint,
+  EmployeeId bigint,
+  ClockInDate date,
+  ClockInTime time,
+  ClockOutDate date,
+  ClockOutTime time,
+  ShiftId int,
+  Status int
 )
 
 CREATE TABLE UserGroup (
