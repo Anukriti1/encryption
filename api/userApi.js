@@ -219,10 +219,11 @@ var endTask = function(req,response){
 	}
 }
 
+// this API for clockin status of any employee for today
 var clockInStatus = function(req,response){
 	if(req.body.EmployeeId){
 		var data = {};
-		data.input = {'EmployeeId': 2,'ClockInDate' : new Date() };
+		data.input = {'EmployeeId': req.body.EmployeeId,'ClockInDate' : new Date() };
 		data.query = "SELECT * from TimeClockSummaryData  WHERE EmployeeId = @EmployeeId AND ClockInDate = @ClockInDate";
 		queryServe.sqlServe(data,function(resData,affected){
 			response.status(200).json(resData);
