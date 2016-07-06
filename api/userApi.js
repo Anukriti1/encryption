@@ -237,78 +237,160 @@ var clockInStatus = function(req,response){
 // time clock api 
 var clockInOut = function(){
 	var data = {};
-	var d = new Date();
 	data.input = {
 		EmployeeId : 2
 	};
 	// 1 for punch in 2 for punchout
 	var clockAction = 2;
-	// for clock in 
-	if(clockAction == 1){
-		data.query = "SELECT TOP 1 * from TimeClockSummaryData WHERE EmployeeId = @EmployeeId ORDER BY ClockInDate DESC;";
-		queryServe.sqlServe(data,function(resData,affected){
-			if(!resData) {}
-			if(resData){
-				if(resData.length == 0){
-					var input = {};
-					input.input = {CompanyId : 1,EmployeeId : 2, ClockInDate : new Date(),ClockInTime : new Date()};
-					input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime);"
-					queryServe.sqlServe(input,function(resData1,affected1){
-						console.log(affected1)
-					})
-				} else {
-					getDbServerDateToday(function(dateData){
-						if(Date.parse(resData[0].ClockInDate) == Date.parse(dateData[0].CurrentDateTime)){
+	getDbServerDateToday(function(dateData){
+		if(dateData && (dateData[0].CurrentDateTime instanceof Date)  && (dateData[0].timeNow instanceof Date)){
+			var DateToday = dateData[0].CurrentDateTime;
+			var datetime = dateData[0].timeNow;
+			data.query = "SELECT TOP 1 * from TimeClockSummaryData WHERE EmployeeId = @EmployeeId ORDER BY ClockInDate DESC, ClockInTime DESC;";
+			queryServe.sqlServe(data,function(resData,affected){
+				if(resData && resData.message) {}
+				// for clock in 
+				if(resData && clockAction == 1){
+					if(resData.length == 0){
+						// insert to summery and detailed data
+						var input = {};
+						input.input = {CompanyId : 1,EmployeeId : 2, ClockInDate : datetime,ClockInTime : datetime};
+						input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime) SELECT SCOPE_IDENTITY();"
+						queryServe.sqlServe(input,function(resData1,affected1){
+							if(resData1 && resData1.message) {}
+							// insert in TimeClockDetailData table
+							if(affected1 > 0 && resData1[0]['']){
+								var inp = {};
+								inp.input = {
+									TimeClockSummaryData_Id : resData1[0][''],
+									CompanyId : 1,
+									EmployeeId : 2,
+									InTime : datetime,
+									InTimeLat : '',
+									InTimeLong : '' 
+								};
+								inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+								+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+								queryServe.sqlServe(inp,function(resp,aff){
+									if(resp && resp.message) {}	
+									console.log(aff);
+								})
+							} else {
+								// smething wrong
+							}
+						})
+					} else {				
+						if(Date.parse(resData[0].ClockInDate) == Date.parse(DateToday)){
 							// same date record exists
+							// only update to detail Data
+							var inp = {};
+							inp.input = {
+								TimeClockSummaryData_Id : resData[0].Id,
+								CompanyId : 1,
+								EmployeeId : 2,
+								InTime : datetime,
+								InTimeLat : '',
+								InTimeLong : '' 
+							};
+							inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+							+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+							queryServe.sqlServe(inp,function(resp,aff){
+								if(resp && resp.message) {}	
+								console.log(aff);
+							})
 						} else {
 							//record is not exists for the same date
 							var input = {};
-							input.input = {CompanyId : 1,EmployeeId : 2, ClockInDate : new Date(),ClockInTime : new Date()};
-							input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime);"
+							input.input = {CompanyId : 1,EmployeeId : 2, ClockInDate : datetime,ClockInTime : datetime};
+							input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime) SELECT SCOPE_IDENTITY();"
 							queryServe.sqlServe(input,function(resData1,affected1){
+								if(resData1 && resData1.message) {}
 								console.log(affected1)
+								// insert to detail data table 
+								if(affected1 > 0 && resData1[0]['']){
+									var inp = {};
+									inp.input = {
+										TimeClockSummaryData_Id : resData1[0][''],
+										CompanyId : 1,
+										EmployeeId : 2,
+										InTime : datetime,
+										InTimeLat : '',
+										InTimeLong : '' 
+									};
+									inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+									+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+									queryServe.sqlServe(inp,function(resp,aff){
+										if(resp && resp.message) {}	
+										console.log(aff);
+									})
+								} else {
+									// smething wrong
+								}
 							})
-						}
-					})
+						}					
+					}
 				}
-			}
-		})
-	}
-	// for clock out 
-	if(clockAction == 2){
-		data.query = "SELECT TOP 1 * from TimeClockSummaryData WHERE EmployeeId = @EmployeeId ORDER BY ClockInDate DESC;";
-		queryServe.sqlServe(data,function(resData,affected){
-			if(!resData) {}
-			if(resData){
-				if(resData.length == 0){
-					// not punch in yet
-				} else {
-					getDbServerDateToday(function(dateData){
-						if(Date.parse(resData[0].ClockInDate) == Date.parse(dateData[0].CurrentDateTime)){
-							console.log(resData[0]);
+				// for clock out
+				if(resData && (clockAction == 2)){
+					console.log(resData)
+					if(resData.length == 0){
+						// not punch in yet
+					} else {
+						if(Date.parse(resData[0].ClockInDate) == Date.parse(DateToday)){
 							// update table for punch out
 							var data = {};
-							data.input = {'ClockOutDate':d,'ClockOutTime': d,'Id': resData[0].Id};
+							data.input = {'ClockOutDate': DateToday,'ClockOutTime': datetime,'Id': resData[0].Id};
 							data.query = 'UPDATE TimeClockSummaryData SET ClockOutDate = @ClockOutDate, ClockOutTime = @ClockOutTime WHERE Id = @Id';	
 							queryServe.sqlServe(data,function(resData3,affected3){
-								console.log(affected3)
+								if(resData3 && resData3.message) {}
+								console.log(affected3);
+								//update to detail Data
+								//checking for last record innserted
+								var inDAta = {};
+								inDAta.input = {EmployeeId : 2};
+								inDAta.query = "SELECT TOP 1 Id,OutTime from TimeClockDetailData WHERE EmployeeId = @EmployeeId ORDER BY InTime DESC";
+								queryServe.sqlServe(inDAta,function(resData4,affected4){
+									if(resData4 && resData4.message) {}
+									if(resData4){
+										if(resData4[0].OutTime == null){
+											console.log('eerwerwe');
+											var inp = {};
+											inp.input = {
+												OutTime : datetime,
+												OutTimeLat : '',
+												OutTimeLong : '',
+												Id : resData4[0].Id  
+											};
+											inp.query="UPDATE TimeClockDetailData SET OutTime = @OutTime, OutTimeLat = @OutTimeLat, OutTimeLong = @OutTimeLong  WHERE Id = @Id"
+											queryServe.sqlServe(inp,function(resp,aff){
+												if(resp && resp.message) {};
+												console.log('rwrwerwe')	
+												console.log(aff);
+											})
+										} else {
+											//already clock out
+										}
+									}
+								})
 							})
 						} else {
 							// Not punch in today yet
 						}
-					})
+					}
 				}
-			}
-		})
-	}		
+			})
+		} else {
+			// problem in fetching date from server
+		}
+	})		
 }
 
-// clockInOut();
+//clockInOut();
 
 // db server date today
 function getDbServerDateToday (callback) {
 	var input = {};
-	input.query = "SELECT DATEADD(day, DATEDIFF(day, 0, GETDATE()), 0) AS CurrentDateTime";
+	input.query = "SELECT DATEADD(day, DATEDIFF(day, 0, GETDATE()), 0) AS CurrentDateTime, GETDATE() as timeNow";
 	queryServe.sqlServe(input,function(resData2){
 		callback(resData2)
 	})
