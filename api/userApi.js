@@ -235,36 +235,34 @@ var clockInStatus = function(req,response){
 
 		
 // time clock api 
-var clockInOut = function(){
+var clockInOut = function(req,response){
 	var data = {};
-	data.input = {
-		EmployeeId : 2
-	};
+	data.input = {EmployeeId : req.body.EmployeeId};
 	// 1 for punch in 2 for punchout
-	var clockAction = 2;
+	var clockAction = req.body.clockAction;
 	getDbServerDateToday(function(dateData){
 		if(dateData && (dateData[0].CurrentDateTime instanceof Date)  && (dateData[0].timeNow instanceof Date)){
 			var DateToday = dateData[0].CurrentDateTime;
 			var datetime = dateData[0].timeNow;
 			data.query = "SELECT TOP 1 * from TimeClockSummaryData WHERE EmployeeId = @EmployeeId ORDER BY ClockInDate DESC, ClockInTime DESC;";
 			queryServe.sqlServe(data,function(resData,affected){
-				if(resData && resData.message) {}
+				if(resData && resData.message) { response.status(401).json({});}
 				// for clock in 
-				if(resData && clockAction == 1){
+				if(resData && (clockAction == 1)){
 					if(resData.length == 0){
 						// insert to summery and detailed data
 						var input = {};
-						input.input = {CompanyId : 1,EmployeeId : 2, ClockInDate : datetime,ClockInTime : datetime};
+						input.input = {CompanyId : req.body.CompanyId,EmployeeId : req.body.EmployeeId, ClockInDate : datetime,ClockInTime : datetime};
 						input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime) SELECT SCOPE_IDENTITY();"
 						queryServe.sqlServe(input,function(resData1,affected1){
-							if(resData1 && resData1.message) {}
+							if(resData1 && resData1.message) {response.status(401).json({});}
 							// insert in TimeClockDetailData table
 							if(affected1 > 0 && resData1[0]['']){
 								var inp = {};
 								inp.input = {
 									TimeClockSummaryData_Id : resData1[0][''],
-									CompanyId : 1,
-									EmployeeId : 2,
+									CompanyId : req.body.CompanyId,
+									EmployeeId : req.body.EmployeeId,
 									InTime : datetime,
 									InTimeLat : '',
 									InTimeLong : '' 
@@ -272,10 +270,12 @@ var clockInOut = function(){
 								inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
 								+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
 								queryServe.sqlServe(inp,function(resp,aff){
-									if(resp && resp.message) {}	
+									if(resp && resp.message) {response.status(401).json({});}	
 									console.log(aff);
+									response.status(200).json(aff);
 								})
 							} else {
+								response.status(401).json({});
 								// smething wrong
 							}
 						})
@@ -286,8 +286,8 @@ var clockInOut = function(){
 							var inp = {};
 							inp.input = {
 								TimeClockSummaryData_Id : resData[0].Id,
-								CompanyId : 1,
-								EmployeeId : 2,
+								CompanyId : req.body.CompanyId,
+								EmployeeId : req.body.EmployeeId,
 								InTime : datetime,
 								InTimeLat : '',
 								InTimeLong : '' 
@@ -295,24 +295,24 @@ var clockInOut = function(){
 							inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
 							+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
 							queryServe.sqlServe(inp,function(resp,aff){
-								if(resp && resp.message) {}	
-								console.log(aff);
+								if(resp && resp.message) {response.status(401).json({});}	
+								response.status(200).json(aff);
 							})
 						} else {
 							//record is not exists for the same date
 							var input = {};
-							input.input = {CompanyId : 1,EmployeeId : 2, ClockInDate : datetime,ClockInTime : datetime};
+							input.input = {CompanyId : req.body.CompanyId,EmployeeId : req.body.EmployeeId, ClockInDate : datetime,ClockInTime : datetime};
 							input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime) SELECT SCOPE_IDENTITY();"
 							queryServe.sqlServe(input,function(resData1,affected1){
-								if(resData1 && resData1.message) {}
+								if(resData1 && resData1.message) {response.status(401).json({});}
 								console.log(affected1)
 								// insert to detail data table 
 								if(affected1 > 0 && resData1[0]['']){
 									var inp = {};
 									inp.input = {
 										TimeClockSummaryData_Id : resData1[0][''],
-										CompanyId : 1,
-										EmployeeId : 2,
+										CompanyId : req.body.CompanyId,
+										EmployeeId : req.body.EmployeeId,
 										InTime : datetime,
 										InTimeLat : '',
 										InTimeLong : '' 
@@ -320,11 +320,12 @@ var clockInOut = function(){
 									inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
 									+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
 									queryServe.sqlServe(inp,function(resp,aff){
-										if(resp && resp.message) {}	
-										console.log(aff);
+										if(resp && resp.message) {response.status(401).json({});}	
+										response.status(200).json(aff);
 									})
 								} else {
 									// smething wrong
+									response.status(401).json({});
 								}
 							})
 						}					
@@ -335,6 +336,7 @@ var clockInOut = function(){
 					console.log(resData)
 					if(resData.length == 0){
 						// not punch in yet
+						response.status(401).json({});
 					} else {
 						if(Date.parse(resData[0].ClockInDate) == Date.parse(DateToday)){
 							// update table for punch out
@@ -342,18 +344,17 @@ var clockInOut = function(){
 							data.input = {'ClockOutDate': DateToday,'ClockOutTime': datetime,'Id': resData[0].Id};
 							data.query = 'UPDATE TimeClockSummaryData SET ClockOutDate = @ClockOutDate, ClockOutTime = @ClockOutTime WHERE Id = @Id';	
 							queryServe.sqlServe(data,function(resData3,affected3){
-								if(resData3 && resData3.message) {}
+								if(resData3 && resData3.message) {response.status(401).json({});}
 								console.log(affected3);
 								//update to detail Data
-								//checking for last record innserted
+								//checking for last record inserted
 								var inDAta = {};
-								inDAta.input = {EmployeeId : 2};
+								inDAta.input = {EmployeeId : req.body.EmployeeId};
 								inDAta.query = "SELECT TOP 1 Id,OutTime from TimeClockDetailData WHERE EmployeeId = @EmployeeId ORDER BY InTime DESC";
 								queryServe.sqlServe(inDAta,function(resData4,affected4){
-									if(resData4 && resData4.message) {}
+									if(resData4 && resData4.message) {response.status(401).json({});}
 									if(resData4){
 										if(resData4[0].OutTime == null){
-											console.log('eerwerwe');
 											var inp = {};
 											inp.input = {
 												OutTime : datetime,
@@ -363,24 +364,26 @@ var clockInOut = function(){
 											};
 											inp.query="UPDATE TimeClockDetailData SET OutTime = @OutTime, OutTimeLat = @OutTimeLat, OutTimeLong = @OutTimeLong  WHERE Id = @Id"
 											queryServe.sqlServe(inp,function(resp,aff){
-												if(resp && resp.message) {};
-												console.log('rwrwerwe')	
-												console.log(aff);
+												if(resp && resp.message) {response.status(401).json({});};
+												response.status(200).json(aff);
 											})
 										} else {
 											//already clock out
+											response.status(401).json({});
 										}
 									}
 								})
 							})
 						} else {
 							// Not punch in today yet
+							response.status(401).json({});
 						}
 					}
 				}
 			})
 		} else {
 			// problem in fetching date from server
+			response.status(401).json({});
 		}
 	})		
 }
@@ -398,6 +401,7 @@ function getDbServerDateToday (callback) {
 
 // assign apis to router
 router.post('/clockInStatus',clockInStatus);
+router.post('/clockInOut',clockInOut);
 router.post('/holdTask',holdTask);
 router.post('/endTask',endTask);
 router.post('/startTask',startTask);
