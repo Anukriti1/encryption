@@ -224,9 +224,17 @@ var clockInStatus = function(req,response){
 	if(req.body.EmployeeId){
 		var data = {};
 		data.input = {'EmployeeId': req.body.EmployeeId};
-		data.query = "SELECT TOP 1 * from TimeClockDetailData  WHERE EmployeeId = @EmployeeId ORDER BY InTime DESC";
+		data.query = "SELECT TOP 1 *, "+
+		"DATEPART(yyyy,InTime) AS Year, DATEPART(mm,InTime) AS Month, DATEPART(dd,InTime) AS Day,"
+		+" DATEPART(yyyy,GETDATE()) AS Year1, DATEPART(mm,GETDATE()) AS Month1, DATEPART(dd,GETDATE()) AS Day1"
+		+" from TimeClockDetailData  WHERE EmployeeId = @EmployeeId ORDER BY InTime DESC";
 		queryServe.sqlServe(data,function(resData,affected){
-			response.status(200).json(resData);
+			// checking if last date is for today or not
+			if(resData && (resData[0].Year === resData[0].Year1) && (resData[0].Month === resData[0].Month1) && (resData[0].Day === resData[0].Day1)){
+				response.status(200).json(resData);
+			} else {
+				response.status(200).json([{}]);
+			}
 		})
 	} else {
 		response.status(401).json({});	
