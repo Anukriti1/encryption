@@ -108,15 +108,17 @@ CREATE TABLE ShiftType (
 
 CREATE TABLE TimeClockDetailData (
   Id int IDENTITY(1,1) PRIMARY KEY,
-  TimeClockSummaryData_Id int NOT NULL,
-  CompanyId bigint NOT NULL,
-  EmployeeId bigint NOT NULL,
-  InTime varchar(16) NOT NULL,
-  OutTime varchar(16) NOT NULL,
-  InTimeLat varchar(50) NOT NULL,
-  InTimeLong varchar(50) NOT NULL,
-  OutTimeLat varchar(50) NOT NULL,
-  OutTimeLong varchar(50) NOT NULL
+  TimeClockSummaryData_Id int,
+  CompanyId bigint,
+  EmployeeId bigint,
+  InTime datetime,
+  OutTime datetime,
+  InTimeLat varchar(50),
+  InTimeLong varchar(50),
+  OutTimeLat varchar(50),
+  OutTimeLong varchar(50),
+  InTimePhoto varbinary,
+  OutTimePhoto varbinary
 )
 
 
