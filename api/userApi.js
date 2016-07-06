@@ -235,6 +235,7 @@ var clockInStatus = function(req,response){
 
 		
 // time clock api 
+/** to do LET Long and image update/insert**/
 var clockInOut = function(req,response){
 	var data = {};
 	data.input = {EmployeeId : req.body.EmployeeId};
@@ -271,7 +272,6 @@ var clockInOut = function(req,response){
 								+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
 								queryServe.sqlServe(inp,function(resp,aff){
 									if(resp && resp.message) {response.status(401).json({});}	
-									console.log(aff);
 									response.status(200).json(aff);
 								})
 							} else {
@@ -305,7 +305,6 @@ var clockInOut = function(req,response){
 							input.query="INSERT INTO TimeClockSummaryData (CompanyId,EmployeeId,ClockInDate,ClockInTime) VALUES (@CompanyId,@EmployeeId,@ClockInDate,@ClockInTime) SELECT SCOPE_IDENTITY();"
 							queryServe.sqlServe(input,function(resData1,affected1){
 								if(resData1 && resData1.message) {response.status(401).json({});}
-								console.log(affected1)
 								// insert to detail data table 
 								if(affected1 > 0 && resData1[0]['']){
 									var inp = {};
@@ -333,7 +332,6 @@ var clockInOut = function(req,response){
 				}
 				// for clock out
 				if(resData && (clockAction == 2)){
-					console.log(resData)
 					if(resData.length == 0){
 						// not punch in yet
 						response.status(401).json({});
@@ -345,7 +343,6 @@ var clockInOut = function(req,response){
 							data.query = 'UPDATE TimeClockSummaryData SET ClockOutDate = @ClockOutDate, ClockOutTime = @ClockOutTime WHERE Id = @Id';	
 							queryServe.sqlServe(data,function(resData3,affected3){
 								if(resData3 && resData3.message) {response.status(401).json({});}
-								console.log(affected3);
 								//update to detail Data
 								//checking for last record inserted
 								var inDAta = {};
