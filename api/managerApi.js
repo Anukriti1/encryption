@@ -141,8 +141,8 @@ var approveOrReject = function(req, res){
 	}
 }
 
-// notification when late attendence to manager and employee
-function latePuchInPush(req,resP){
+// notification when late attendence to manager and employee and also check for 30 min before for overtime request
+function lateOvertimePush(req,resP){
 	var data = {};
 	data.input = {
 		EmployeeId : req.body.EmployeeId,
@@ -174,14 +174,25 @@ function latePuchInPush(req,resP){
 			// no late
 			var diff = ((resD[0].timeNow - resD[0].CurrentDate) - (resD[0].ShiftInTime.getTime()));
 			if (diff < 0 && (-diff) >=(1.8e+6)){
-				// over time flag
-				resP.status(200).json({overTime : true});
+				// send push for overtime
+				var data1 = {};
+				data1.input = {CompanyId : req.body.CompanyId,UserGroupId : req.body.UserGroupId,EmployeeId : req.body.EmployeeId};
+				data1.query = "SELECT DeviceToken FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
+				queryServe.sqlServe(data1,function(resD1){
+					if(resD1 && resD1.message) {resP.status(401).json({});}
+					var message = 'Employee '+resD[0].EmployeeName+' is overtime';
+					sendPushNot(resD1,message,function(data2){
+						// over time flag
+						resP.status(200).json({overTime : true});
+					})
+				})
 			} else {
 				resP.status(200).json({});
 			}
 		}
 	})
 }
+
 
 function sendPushNot(resDataTokens,message,callback){
 	var tokens = [];
@@ -203,7 +214,7 @@ function sendPushNot(resDataTokens,message,callback){
 
 
 router.post('/approveOrReject',approveOrReject);
-router.post('/latePuchInPush',latePuchInPush);
+router.post('/lateOvertimePush',lateOvertimePush);
 router.post('/listTask',listTask);
 router.post('/create_task',create_task);
 router.post('/allProjectsList',allProjects);
