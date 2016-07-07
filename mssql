@@ -9,7 +9,8 @@ CREATE TABLE Employees
 [Id] [bigint] IDENTITY(1,1) PRIMARY KEY,
 EmployeeName nvarchar(100) NOT NULL,
 EmployeeCode nvarchar(100) NOT NULL,
-CompanyId bigint NOT NULL
+CompanyId bigint NOT NULL,
+IsOverTime bit
 )
 
 
