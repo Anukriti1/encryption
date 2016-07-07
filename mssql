@@ -77,17 +77,18 @@ CREATE TABLE Shift (
   Id int IDENTITY(1,1) PRIMARY KEY,
   CompanyId bigint NOT NULL,
   Name nvarchar(100) NOT NULL,
-  StartDate varchar(10) NOT NULL,
-  EndDate varchar(10) NOT NULL
+  CycleType char(20),
+  StartDate varchar(10),
+  EndDate varchar(10)
 )
 
 CREATE TABLE ShiftDetail (
   Id int IDENTITY(1,1) PRIMARY KEY,
   CompanyId bigint NOT NULL,
   ShiftId int NOT NULL,
-  CycleType char(20) NOT NULL,
-  Day int NOT NULL,
-  ShiftTypeId int NOT NULL
+  CycleType char(20),
+  Day int,
+  ShiftTypeId int
 )
 
 
