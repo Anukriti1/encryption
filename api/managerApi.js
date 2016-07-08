@@ -174,20 +174,10 @@ function lateOvertimePush(req,resP){
 			// no late
 			var diff = ((resD[0].timeNow - resD[0].CurrentDate) - (resD[0].ShiftInTime.getTime()));
 			if (diff < 0 && (-diff) >=(1.8e+6)){
-				// send push for overtime
 				// checking if employee has the overtime flag 
 				if(resD[0].IsOverTime){
-					var data1 = {};
-					data1.input = {CompanyId : req.body.CompanyId,UserGroupId : req.body.UserGroupId,EmployeeId : req.body.EmployeeId};
-					data1.query = "SELECT DeviceToken FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
-					queryServe.sqlServe(data1,function(resD1){
-						if(resD1 && resD1.message) {resP.status(401).json({});}
-						var message = 'Employee '+resD[0].EmployeeName+' is overtime';
-						sendPushNot(resD1,message,function(data2){
-							// over time flag
-							resP.status(200).json({overTime : true});
-						})
-					})
+					var message = 'Employee '+resD[0].EmployeeName+' is requested for overtime';
+					resP.status(200).json({overTime : true,'message' : message});
 				} else {
 					resP.status(200).json({});
 				}
@@ -199,9 +189,33 @@ function lateOvertimePush(req,resP){
 }
 
 
+// overtime request from user and send push
+
+var overtimeReq = function(request, response){
+	var data = {};
+	data.input = {
+		CompanyId : request.body.CompanyId,EmployeeId : request.body.EmployeeId,TimeClockSummaryData_Id: request.body.TimeClockSummaryData_Id
+	};
+	data.query = "INSERT INTO TimeClockOTRequest (CompanyId,EmployeeId,TimeClockSummaryData_Id,RequestTime) "
+			   + " VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,GETDATE())";
+	queryServe.sqlServe(data,function(resD1,aff){
+		if((resD1 && resD1.message) || (aff && (aff < 1))) {response.status(401).json({});}
+		else {
+			var data1 = {};
+			data1.input = {CompanyId : request.body.CompanyId,UserGroupId : request.body.UserGroupId,EmployeeId : request.body.EmployeeId};
+			data1.query = "SELECT DeviceToken FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
+			queryServe.sqlServe(data1,function(resD1){
+				if(resD1 && resD1.message) {resP.status(401).json({});}
+				sendPushNot(resD1,request.body.message,function(data2){
+					response.status(401).json({"aff":aff});
+				})
+			})
+		}		
+	})
+}
+
 function sendPushNot(resDataTokens,message,callback){
 	var tokens = [];
-	console.log(resDataTokens)
 	async.forEach(resDataTokens,function(item, callbackA){
 		if((!(item.DeviceToken == null) && item.DeviceToken )){
 			tokens.push(item.DeviceToken)
@@ -217,7 +231,7 @@ function sendPushNot(resDataTokens,message,callback){
 	})
 }
 
-
+router.post('/overtimeReq', overtimeReq);
 router.post('/approveOrReject',approveOrReject);
 router.post('/lateOvertimePush',lateOvertimePush);
 router.post('/listTask',listTask);
