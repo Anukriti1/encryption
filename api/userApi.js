@@ -230,7 +230,7 @@ var clockInStatus = function(req,response){
 		+" from TimeClockDetailData  WHERE EmployeeId = @EmployeeId ORDER BY InTime DESC";
 		queryServe.sqlServe(data,function(resData,affected){
 			// checking if last date is for today or not
-			if(resData && (resData[0].Year === resData[0].Year1) && (resData[0].Month === resData[0].Month1) && (resData[0].Day === resData[0].Day1)){
+			if(resData && resData.length && resData[0].Year && (resData[0].Year === resData[0].Year1) && (resData[0].Month === resData[0].Month1) && (resData[0].Day === resData[0].Day1)){
 				response.status(200).json(resData);
 			} else {
 				response.status(200).json({});
@@ -282,7 +282,7 @@ var clockInOut = function(req,response){
 								+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
 								queryServe.sqlServe(inp,function(resp,aff){
 									if(resp && resp.message) {response.status(401).json({});}	
-									response.status(200).json({'aff' : aff , 'firstPunchIn' : 1});
+									response.status(200).json({'aff' : aff , 'firstPunchIn' : 1,TimeClockSummaryData_Id : resData1[0]['']});
 								})
 							} else {
 								response.status(401).json({});
@@ -330,7 +330,7 @@ var clockInOut = function(req,response){
 									+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
 									queryServe.sqlServe(inp,function(resp,aff){
 										if(resp && resp.message) {response.status(401).json({});}	
-										response.status(200).json({'aff' : aff , 'firstPunchIn' : 1});
+										response.status(200).json({'aff' : aff , 'firstPunchIn' : 1,TimeClockSummaryData_Id : resData1[0]['']});
 									})
 								} else {
 									// smething wrong
