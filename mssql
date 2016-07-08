@@ -148,3 +148,14 @@ CREATE TABLE UserGroup (
   Id bigint IDENTITY(1,1) PRIMARY KEY,
   Description varchar(100) NOT NULL
 )
+
+CREATE TABLE TimeClockOTRequest (
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint NOT NULL,
+  EmployeeId bigint NOT NULL,
+  TimeClockSummaryData_Id int,
+  RequestTime datetime,
+  Status int DEFAULT 0,
+  ApproveOrRejectBy int, 
+  ApproveOrRejectOn datetime
+)
