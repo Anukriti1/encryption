@@ -111,7 +111,7 @@ function generateInputQuery(data,values,keys,callback){
 	})
 }
 
-// accept or reject by a manager
+// accept or reject task by a manager
 var approveOrReject = function(req, res){
 	if(req.body && req.body.ApprovalStatus && req.body.ScheduleTaskId 
 		&& req.body.ApproveOrRejectBy && req.body.EmployeeId && req.body.TaskName){
@@ -214,6 +214,48 @@ var overtimeReq = function(request, response){
 	})
 }
 
+// approve or reject Overtime request by manager
+function appRejOTReq() {
+	var data = {};
+	var EmpName = '';
+	data.input = {
+		'Status': 1,
+		'Id': 8, 
+		'ApproveOrRejectBy' : 1,
+		'EmployeeId': 2
+	};
+	data.query = "UPDATE TimeClockOTRequest SET Status = @Status, "+
+				"ApproveOrRejectBy = @ApproveOrRejectBy, ApproveOrRejectOn = GETDATE()"
+				+"  WHERE Id = @Id AND EmployeeId = @EmployeeId";
+	queryServe.sqlServe(data,function(resD1,aff){
+		if(resD1 && resD1.message) {console.log('error')}
+			var data1 = {};
+			data1.input = {EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy};
+			data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId)"
+
+			queryServe.sqlServe(data1,function(resD2,aff2){
+				async.forEach(resD2,function(item, callbackA){
+					if(item.Id == data.input.EmployeeId){
+						EmpName = item.EmployeeName;
+						callbackA()
+					} else {
+						callbackA()
+					}
+				},function(){
+					var ResStatus = 'Accepted'
+					if(data.input.Status == 2)
+						ResStatus = 'Rejected' 
+					var message = EmpName+"'s " + "Overtime request has been "+ResStatus;
+					console.log(message)
+					sendPushNot(resD2,message,function(data3){
+						console.log(data3)
+					})
+				})
+			})
+	})
+}
+
+// for sending push notification
 function sendPushNot(resDataTokens,message,callback){
 	var tokens = [];
 	async.forEach(resDataTokens,function(item, callbackA){
