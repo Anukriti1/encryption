@@ -255,6 +255,29 @@ function appRejOTReq() {
 	})
 }
 
+
+// Time Clock list for employees for today
+
+var tClock = function(req,res){
+	if(req.body && req.body.CompanyId && req.body.UserGroupId){
+		var data = {};
+		data.input = {"CompanyId" : 1, 'UserGroupId' : 9};
+		data.query = "SELECT EmployeeName, Employees.Id,TimeClockSummaryData.*,TimeClockOTRequest.* FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
+		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
+		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC"
+		console.log(data.query)
+		queryServe.sqlServe(data,function(resD,aff){
+			console.log(resD)
+			if(resD && resD.message) {res.status(401).json({});}
+			res.status(200).json(resD);
+		})
+	} else {
+		res.status(401).json({});
+	}
+}
+
+
 // for sending push notification
 function sendPushNot(resDataTokens,message,callback){
 	var tokens = [];
@@ -280,4 +303,5 @@ router.post('/listTask',listTask);
 router.post('/create_task',create_task);
 router.post('/allProjectsList',allProjects);
 router.post('/allEmp',allEmp);
+router.post('/tClock', tClock);
 module.exports = router;
