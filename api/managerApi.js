@@ -204,10 +204,10 @@ var overtimeReq = function(request, response){
 			var data1 = {};
 			data1.input = {CompanyId : request.body.CompanyId,UserGroupId : request.body.UserGroupId,EmployeeId : request.body.EmployeeId};
 			data1.query = "SELECT DeviceToken FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
-			queryServe.sqlServe(data1,function(resD1){
-				if(resD1 && resD1.message) {resP.status(401).json({});}
-				sendPushNot(resD1,request.body.message,function(data2){
-					response.status(401).json({"aff":aff});
+			queryServe.sqlServe(data1,function(resD2){
+				if(resD2 && resD2.message) {response.status(401).json({});}
+				sendPushNot(resD2,request.body.message,function(data2){
+					response.status(200).json({"aff":aff});
 				})
 			})
 		}		
@@ -215,43 +215,45 @@ var overtimeReq = function(request, response){
 }
 
 // approve or reject Overtime request by manager
-function appRejOTReq() {
+var appRejOTReq = function(request,response) {
 	var data = {};
 	var EmpName = '';
 	data.input = {
-		'Status': 1,
-		'Id': 8, 
-		'ApproveOrRejectBy' : 1,
-		'EmployeeId': 2
+		'Status': request.body.Status,
+		'Id': request.body.TimeClockOTRequest_Id, 
+		'ApproveOrRejectBy' : request.body.ApproveOrRejectBy,
+		'EmployeeId': request.body.EmployeeId
 	};
 	data.query = "UPDATE TimeClockOTRequest SET Status = @Status, "+
 				"ApproveOrRejectBy = @ApproveOrRejectBy, ApproveOrRejectOn = GETDATE()"
 				+"  WHERE Id = @Id AND EmployeeId = @EmployeeId";
+				console.log(data)
 	queryServe.sqlServe(data,function(resD1,aff){
-		if(resD1 && resD1.message) {console.log('error')}
-			var data1 = {};
-			data1.input = {EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy};
-			data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId)"
+		if(resD1 && resD1.message) {response.status(401).json({});}
+		console.log(resD1,aff)
+		var data1 = {};
+		data1.input = {EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy};
+		data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId)"
 
-			queryServe.sqlServe(data1,function(resD2,aff2){
-				async.forEach(resD2,function(item, callbackA){
-					if(item.Id == data.input.EmployeeId){
-						EmpName = item.EmployeeName;
-						callbackA()
-					} else {
-						callbackA()
-					}
-				},function(){
-					var ResStatus = 'Accepted'
-					if(data.input.Status == 2)
-						ResStatus = 'Rejected' 
-					var message = EmpName+"'s " + "Overtime request has been "+ResStatus;
-					console.log(message)
-					sendPushNot(resD2,message,function(data3){
-						console.log(data3)
-					})
+		queryServe.sqlServe(data1,function(resD2,aff2){
+			if(resD2 && resD2.message) {response.status(401).json({});}
+			async.forEach(resD2,function(item, callbackA){
+				if(item.Id == data.input.EmployeeId){
+					EmpName = item.EmployeeName;
+					callbackA()
+				} else {
+					callbackA()
+				}
+			},function(){
+				var ResStatus = 'Accepted'
+				if(data.input.Status == 2)
+					ResStatus = 'Rejected' 
+				var message = EmpName+"'s " + "Overtime request has been "+ResStatus;
+				sendPushNot(resD2,message,function(data3){
+					response.status(200).json(data3);
 				})
 			})
+		})
 	})
 }
 
@@ -262,7 +264,7 @@ var tClock = function(req,res){
 	if(req.body && req.body.CompanyId && req.body.UserGroupId){
 		var data = {};
 		data.input = {"CompanyId" : 1, 'UserGroupId' : 9};
-		data.query = "SELECT EmployeeName, Employees.Id,TimeClockSummaryData.*,TimeClockOTRequest.* FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.ID AS TimeClockOTRequest_Id FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
 		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC"
@@ -296,6 +298,7 @@ function sendPushNot(resDataTokens,message,callback){
 	})
 }
 
+router.post('/appRejOTReq',appRejOTReq)
 router.post('/overtimeReq', overtimeReq);
 router.post('/approveOrReject',approveOrReject);
 router.post('/lateOvertimePush',lateOvertimePush);
