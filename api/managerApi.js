@@ -153,7 +153,6 @@ function lateOvertimePush(req,resP){
 	+ " ShiftType ON ShiftType.ID = ShiftDetail.ShiftTypeId INNER JOIN "
 	+ " ShiftEmployee ON Shift.Id = ShiftEmployee.ShiftId INNER JOIN Employees ON ShiftEmployee.EmployeeId = Employees.Id WHERE ShiftEmployee.EmployeeId = @EmployeeId AND ShiftDetail.CompanyId = @CompanyId"
 	queryServe.sqlServe(data,function(resD){
-		console.log(resD);
 		if(resD && resD.message) {resP.status(401).json({});}
 		if( !resD || !resD.length){/** no data or error**/ resP.status(401).json({})}
 		else if((resD[0].timeNow - resD[0].CurrentDate) > (resD[0].ShiftInTime.getTime())){
@@ -163,7 +162,6 @@ function lateOvertimePush(req,resP){
 			data1.input = {CompanyId : req.body.CompanyId,UserGroupId : req.body.UserGroupId,EmployeeId : req.body.EmployeeId};
 			data1.query = "SELECT DeviceToken FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
 			queryServe.sqlServe(data1,function(resD1){
-				console.log(resD1);
 				if(resD1 && resD1.message) {resP.status(401).json({});}
 				var message = 'Employee '+resD[0].EmployeeName+' reached late';
 				sendPushNot(resD1,message,function(data2){
@@ -226,14 +224,14 @@ var appRejOTReq = function(request,response) {
 	};
 	data.query = "UPDATE TimeClockOTRequest SET Status = @Status, "+
 				"ApproveOrRejectBy = @ApproveOrRejectBy, ApproveOrRejectOn = GETDATE()"
-				+"  WHERE Id = @Id AND EmployeeId = @EmployeeId";
-				console.log(data)
+				+"  WHERE Id = @Id AND EmployeeId = @EmployeeId; SELECT * FROM TimeClockOTRequest WHERE Id = @Id AND EmployeeId = @EmployeeId";
 	queryServe.sqlServe(data,function(resD1,aff){
+		console.log(resD1,aff);
 		if(resD1 && resD1.message) {response.status(401).json({});}
-		console.log(resD1,aff)
 		var data1 = {};
-		data1.input = {EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy};
-		data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId)"
+		data1.input = {'Status': request.body.Status, CompanyId :resD1[0].CompanyId, EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy,TimeClockSummaryData_Id: resD1[0].TimeClockSummaryData_Id};
+		data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId);"
+		+" INSERT INTO TimeClockManageLogData (CompanyId,EmployeeId,TimeClockSummaryData_Id,Status)  VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,@Status);"
 
 		queryServe.sqlServe(data1,function(resD2,aff2){
 			if(resD2 && resD2.message) {response.status(401).json({});}
@@ -267,10 +265,8 @@ var tClock = function(req,res){
 		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.ID AS TimeClockOTRequest_Id FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
-		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC"
-		console.log(data.query)
+		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC";
 		queryServe.sqlServe(data,function(resD,aff){
-			console.log(resD)
 			if(resD && resD.message) {res.status(401).json({});}
 			res.status(200).json(resD);
 		})
