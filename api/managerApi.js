@@ -301,7 +301,7 @@ var clockAccRej = function(req,res) {
 var tClock = function(req,res){
 	if(req.body && req.body.CompanyId && req.body.UserGroupId){
 		var data = {};
-		data.input = {"CompanyId" : 1, 'UserGroupId' : 9};
+		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId};
 		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryData_Id FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
@@ -314,6 +314,28 @@ var tClock = function(req,res){
 		res.status(401).json({});
 	}
 }
+
+
+// List of Employees for today clock In With Overtime Request
+
+var listOvertime = function(req,res){
+	if(req.body && req.body.CompanyId && req.body.UserGroupId){
+		var data = {};
+		data.input = {"CompanyId" : 1, 'UserGroupId' : 9};
+		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryData_Id FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
+		+"INNER JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
+		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC";
+		queryServe.sqlServe(data,function(resD,aff){
+			if(resD && resD.message) {res.status(401).json({});}
+			res.status(200).json(resD);
+		})
+	} else {
+		res.status(401).json({});
+	}
+}
+
+
 
 
 // for sending push notification
@@ -334,6 +356,7 @@ function sendPushNot(resDataTokens,message,callback){
 	})
 }
 
+router.post('/listOvertime',listOvertime)
 router.post('/clockAccRej',clockAccRej);
 router.post('/appRejOTReq',appRejOTReq)
 router.post('/overtimeReq', overtimeReq);
