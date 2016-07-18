@@ -226,13 +226,10 @@ var appRejOTReq = function(request,response) {
 				"ApproveOrRejectBy = @ApproveOrRejectBy, ApproveOrRejectOn = GETDATE()"
 				+"  WHERE Id = @Id AND EmployeeId = @EmployeeId; SELECT * FROM TimeClockOTRequest WHERE Id = @Id AND EmployeeId = @EmployeeId";
 	queryServe.sqlServe(data,function(resD1,aff){
-		console.log(resD1,aff);
 		if(resD1 && resD1.message) {response.status(401).json({});}
 		var data1 = {};
-		data1.input = {'Status': request.body.Status, CompanyId :resD1[0].CompanyId, EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy,TimeClockSummaryData_Id: resD1[0].TimeClockSummaryData_Id};
+		data1.input = {EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy};
 		data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId);"
-		+" INSERT INTO TimeClockManageLogData (CompanyId,EmployeeId,TimeClockSummaryData_Id,Status)  VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,@Status);"
-
 		queryServe.sqlServe(data1,function(resD2,aff2){
 			if(resD2 && resD2.message) {response.status(401).json({});}
 			async.forEach(resD2,function(item, callbackA){
@@ -256,13 +253,56 @@ var appRejOTReq = function(request,response) {
 }
 
 
+// approve or reject clock by manager
+var clockAccRej = function(req,res) {
+	var data = {};
+	var EmpName = '';
+	data.input = {
+		'Status': req.body.Status,
+		'Id': req.body.Id, 
+		'ApproveOrRejectBy' : req.body.ApproveOrRejectBy,
+		'EmployeeId': req.body.EmployeeId,
+		'CompanyId': req.body.CompanyId
+	};
+	data.query = "UPDATE TimeClockSummarydata SET Status = @Status"+
+				", ApproveOrRejectBy = @ApproveOrRejectBy, ApproveOrRejectOn = GETDATE()"+
+				"  WHERE Id = @Id AND EmployeeId = @EmployeeId;"
+	queryServe.sqlServe(data,function(resD1,aff){
+		if(resD1 && resD1.message) {res.status(401).json({});}
+		var data1 = {};
+		data1.input = {'Status': data.input.Status, CompanyId :data.input.CompanyId, EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy,TimeClockSummaryData_Id: data.input.Id};
+		data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId);"
+		+" INSERT INTO TimeClockManageLogData (CompanyId,EmployeeId,TimeClockSummaryData_Id,Status)  VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,@Status);"
+		queryServe.sqlServe(data1,function(resD2,aff1){
+			if(resD2 && resD2.message) {res.status(401).json({});}
+			async.forEach(resD2,function(item, callbackA){
+				if(item.Id == data.input.EmployeeId){
+					EmpName = item.EmployeeName;
+					callbackA()
+				} else {
+					callbackA()
+				}
+			},function(){
+				var ResStatus = 'Accepted'
+				if(data.input.Status == 2)
+					ResStatus = 'Rejected' 
+				var message = EmpName+"'s " + "CLock has been "+ResStatus;
+				sendPushNot(resD2,message,function(data3){
+					res.status(200).json(data3);
+				})
+			})
+		})
+	})
+}
+
+
 // Time Clock list for employees for today
 
 var tClock = function(req,res){
 	if(req.body && req.body.CompanyId && req.body.UserGroupId){
 		var data = {};
 		data.input = {"CompanyId" : 1, 'UserGroupId' : 9};
-		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.ID AS TimeClockOTRequest_Id FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryData_Id FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
 		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC";
@@ -294,6 +334,7 @@ function sendPushNot(resDataTokens,message,callback){
 	})
 }
 
+router.post('/clockAccRej',clockAccRej);
 router.post('/appRejOTReq',appRejOTReq)
 router.post('/overtimeReq', overtimeReq);
 router.post('/approveOrReject',approveOrReject);
