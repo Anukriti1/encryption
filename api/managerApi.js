@@ -302,8 +302,10 @@ var tClock = function(req,res){
 	if(req.body && req.body.CompanyId && req.body.UserGroupId){
 		var data = {};
 		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId};
-		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryData_Id FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
-		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
+		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryDataId "
+		+" ,TimeClockSummaryData.Status AS SummaryStatus"
+		+" FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		+"INNER JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
 		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC";
 		queryServe.sqlServe(data,function(resD,aff){
