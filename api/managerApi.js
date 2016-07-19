@@ -323,8 +323,10 @@ var tClock = function(req,res){
 var listOvertime = function(req,res){
 	if(req.body && req.body.CompanyId && req.body.UserGroupId){
 		var data = {};
-		data.input = {"CompanyId" : 1, 'UserGroupId' : 9};
-		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryData_Id FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId};
+		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryData_Id "
+		+",TimeClockOTRequest.Status AS OTStatus "
+		+"FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"INNER JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
 		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC";
