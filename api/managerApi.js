@@ -38,10 +38,10 @@ var allEmp = function(req, res) {
 
 // this api is for getting all list of tasks for a company
 var listTask = function(req, res){
-	if(req.body && req.body.CompanyId){
+	if(req.body && req.body.CompanyId && req.body.TaskDate){
 		var data = {};
-		data.input = {'CompanyId': req.body.CompanyId};
-		data.query = 'SELECT  ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId';
+		data.input = {'CompanyId': req.body.CompanyId, 'TaskDate' : req.body.TaskDate};
+		data.query = 'SELECT  ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.TaskDate = @TaskDate';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);
