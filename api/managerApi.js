@@ -25,8 +25,8 @@ var allProjects = function(req, res) {
 var allEmp = function(req, res) {
 	if(req.body && req.body.CompanyId){
 		var data = {};
-		data.input = {'CompanyId':req.body.CompanyId};
-		data.query = 'SELECT * FROM Employees WHERE CompanyId = @CompanyId';
+		data.input = {'CompanyId':req.body.CompanyId,'UserGroupId' : 9};
+		data.query = 'SELECT Employees.* FROM Employees INNER JOIN LoginUser ON LoginUser.EmployeeId =  Employees.Id WHERE Employees.CompanyId = @CompanyId AND UserGroupId = @UserGroupId;'
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);
@@ -348,10 +348,9 @@ var emPList = function(req,res){
 		+" FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"INNER JOIN ScheduleTask ON Employees.Id = ScheduleTask.EmployeeId "
 		+" INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id"
-		+" LEFT JOIN TimeClockSummaryData ON TimeClockSummaryData.EmployeeId = Employees.Id"
+		+" LEFT JOIN TimeClockSummaryData ON TimeClockSummaryData.EmployeeId = Employees.Id AND TimeClockSummaryData.ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()))"
 		+" WHERE Employees.Id = @Id AND TaskDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()))"
 		+" AND TaskDate < CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()+1))"
-		+" AND TimeClockSummaryData.ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()))"
 		queryServe.sqlServe(data,function(resD,aff){
 			if(resD && resD.message) {res.status(401).json({});}
 			res.status(200).json(resD);
