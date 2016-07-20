@@ -339,7 +339,27 @@ var listOvertime = function(req,res){
 	}
 }
 
-
+// Employee with his current date tasks and clocks
+var emPList = function(req,res){
+	if(req.body && req.body.Id){
+		var data = {};
+		data.input = {"Id" : req.body.Id};
+		data.query = "SELECT Employees.Id AS Employees_Id , Employees.EmployeeName, Project.ProjectName, ScheduleTask.*,TimeClockSummaryData.*"
+		+" FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		+"INNER JOIN ScheduleTask ON Employees.Id = ScheduleTask.EmployeeId "
+		+" INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id"
+		+" LEFT JOIN TimeClockSummaryData ON TimeClockSummaryData.EmployeeId = Employees.Id"
+		+" WHERE Employees.Id = @Id AND TaskDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()))"
+		+" AND TaskDate < CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()+1))"
+		+" AND TimeClockSummaryData.ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()))"
+		queryServe.sqlServe(data,function(resD,aff){
+			if(resD && resD.message) {res.status(401).json({});}
+			res.status(200).json(resD);
+		})
+	} else {
+		res.status(401).json({});
+	}
+}
 
 
 // for sending push notification
@@ -360,6 +380,7 @@ function sendPushNot(resDataTokens,message,callback){
 	})
 }
 
+router.post('/emPList',emPList)
 router.post('/listOvertime',listOvertime)
 router.post('/clockAccRej',clockAccRej);
 router.post('/appRejOTReq',appRejOTReq)
