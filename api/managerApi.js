@@ -130,7 +130,7 @@ var approveOrReject = function(req, res){
 			searchtoken.query = "SELECT DeviceToken From LoginUser WHERE EmployeeId IN (@Id1,@Id2)";
 			queryServe.sqlServe(searchtoken,function(resDataTokens){
 				var statusAR = (req.body.ApprovalStatus == 1) ? "Approved":"Rejected";
-				var message = 'Task: '+ req.body.TaskName+' is '+statusAR;
+				var message = 'Task: '+ req.body.TaskName+' has been '+statusAR;
 				sendPushNot(resDataTokens,message,function(data){
 					res.status(200).json({'affected': affected});
 				})	
