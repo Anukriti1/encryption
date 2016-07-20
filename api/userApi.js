@@ -56,10 +56,10 @@ var loginPin = function(req, res){
 var listUserTask = function(req, res){
 	if(req.body && req.body.CompanyId,req.body.EmployeeId){
 		var data = {};
-		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId};
+		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, TaskDate : req.body.TaskDate};
 		data.query = 'SELECT  ScheduleTask.Id,ScheduleTask.CompanyId,ScheduleTask.EmployeeId,ScheduleTask.TaskDate,ScheduleTask.TaskName,ScheduleTask.ApprovalStatus '
 		+', Job.* , Project.ProjectName FROM ScheduleTask LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id'
-		+  ' WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.EmployeeId = @EmployeeId AND (Job.Status IN (0, 1) OR Job.Status IS NULL)';
+		+  ' WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.EmployeeId = @EmployeeId AND ScheduleTask.TaskDate = @TaskDate AND (Job.Status IN (0, 1) OR Job.Status IS NULL)';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);
@@ -241,6 +241,19 @@ var clockInStatus = function(req,response){
 	}
 }
 
+var shiftDetail = function(req,response){
+	if(req.body.EmployeeId){
+		var data = {};
+		data.input = {'EmployeeId': req.body.EmployeeId, 'CompanyId': req.body.CompanyId};
+		data.query = "SELECT ShiftInTime FROM Shift INNER JOIN ShiftDetail ON Shift.Id = ShiftDetail.ShiftId INNER JOIN ShiftType ON ShiftType.ID = ShiftDetail.ShiftTypeId INNER JOIN ShiftEmployee ON Shift.Id = ShiftEmployee.ShiftId INNER JOIN Employees ON ShiftEmployee.EmployeeId = Employees.Id WHERE ShiftEmployee.EmployeeId = @EmployeeId AND ShiftDetail.CompanyId = @CompanyId";
+		queryServe.sqlServe(data,function(resData,affected){
+			if(resData && resData.message) {response.status(401).json({});}
+			response.status(200).json(resData);
+		})
+	} else {
+		response.status(401).json({});	
+	}	
+}
 		
 // time clock api 
 /** to do LET Long and image update/insert**/
@@ -406,6 +419,7 @@ function getDbServerDateToday (callback) {
 }
 
 // assign apis to router
+router.post('/shiftDetail',shiftDetail)
 router.post('/clockInStatus',clockInStatus);
 router.post('/clockInOut',clockInOut);
 router.post('/holdTask',holdTask);
