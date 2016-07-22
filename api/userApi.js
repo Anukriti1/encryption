@@ -260,6 +260,10 @@ var shiftDetail = function(req,response){
 var clockInOut = function(req,response){
 	var data = {};
 	data.input = {EmployeeId : req.body.EmployeeId};
+	if(!req.body.imageData){
+		req.body.imageData = '';
+	}
+	req.body.imageData = Buffer.from(req.body.imageData, 'base64');
 	// 1 for punch in 2 for punchout
 	var clockAction = req.body.clockAction;
 	var lat = req.body.CurrentPosition.latitude.toString();
@@ -289,10 +293,11 @@ var clockInOut = function(req,response){
 									EmployeeId : req.body.EmployeeId,
 									InTime : datetime,
 									InTimeLat : lat,
-									InTimeLong : long 
+									InTimeLong : long ,
+									InTimePhoto: req.body.imageData
 								};
-								inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
-								+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+								inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong,InTimePhoto)"
+								+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong,@InTimePhoto)"
 								queryServe.sqlServe(inp,function(resp,aff){
 									if(resp && resp.message) {response.status(401).json({});}	
 									response.status(200).json({'aff' : aff , 'firstPunchIn' : 1,TimeClockSummaryData_Id : resData1[0]['']});
@@ -313,10 +318,11 @@ var clockInOut = function(req,response){
 								EmployeeId : req.body.EmployeeId,
 								InTime : datetime,
 								InTimeLat : lat,
-								InTimeLong : long 
+								InTimeLong : long ,
+								InTimePhoto: req.body.imageData
 							};
-							inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
-							+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+							inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong,InTimePhoto)"
+							+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong,@InTimePhoto)"
 							queryServe.sqlServe(inp,function(resp,aff){
 								if(resp && resp.message) {response.status(401).json({});}	
 								response.status(200).json(aff);
@@ -337,10 +343,11 @@ var clockInOut = function(req,response){
 										EmployeeId : req.body.EmployeeId,
 										InTime : datetime,
 										InTimeLat : lat,
-										InTimeLong : long 
+										InTimeLong : long ,
+										InTimePhoto: req.body.imageData
 									};
-									inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
-									+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+									inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong,InTimePhoto)"
+									+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong,@InTimePhoto)"
 									queryServe.sqlServe(inp,function(resp,aff){
 										if(resp && resp.message) {response.status(401).json({});}	
 										response.status(200).json({'aff' : aff , 'firstPunchIn' : 1,TimeClockSummaryData_Id : resData1[0]['']});
@@ -380,9 +387,10 @@ var clockInOut = function(req,response){
 												OutTime : datetime,
 												OutTimeLat : lat,
 												OutTimeLong : long,
+												OutTimePhoto : req.body.imageData,
 												Id : resData4[0].Id  
 											};
-											inp.query="UPDATE TimeClockDetailData SET OutTime = @OutTime, OutTimeLat = @OutTimeLat, OutTimeLong = @OutTimeLong  WHERE Id = @Id"
+											inp.query="UPDATE TimeClockDetailData SET OutTime = @OutTime, OutTimeLat = @OutTimeLat, OutTimeLong = @OutTimeLong, OutTimePhoto = @OutTimePhoto  WHERE Id = @Id"
 											queryServe.sqlServe(inp,function(resp,aff){
 												if(resp && resp.message) {response.status(401).json({});};
 												response.status(200).json(aff);
