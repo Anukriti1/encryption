@@ -56,7 +56,7 @@ var loginPin = function(req, res){
 var listUserTask = function(req, res){
 	if(req.body && req.body.CompanyId,req.body.EmployeeId){
 		var data = {};
-		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, TaskDate : req.body.TaskDate};
+		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate' : req.body.TaskDate};
 		data.query = 'SELECT  ScheduleTask.Id,ScheduleTask.CompanyId,ScheduleTask.EmployeeId,ScheduleTask.TaskDate,ScheduleTask.TaskName,ScheduleTask.ApprovalStatus '
 		+', Job.* , Project.ProjectName FROM ScheduleTask LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id'
 		+  ' WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.EmployeeId = @EmployeeId AND ScheduleTask.TaskDate = @TaskDate AND (Job.Status IN (0, 1) OR Job.Status IS NULL)';
@@ -158,8 +158,8 @@ var resumeTask = function(req,response){
 }
 
 var endTask = function(req,response){
-	if(req.body && req.body.ScheduleTaskId){
-		console.log(req.body)
+	if(req.body && req.body.ScheduleTaskId && req.body.imageData){
+		req.body.imageData = Buffer.from(req.body.imageData, 'base64');
 		var time = new Date;
 		var input = {};
 		input.input = {'ScheduleTaskId':req.body.ScheduleTaskId};
@@ -177,11 +177,11 @@ var endTask = function(req,response){
 					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status, "
 								+"WETime = @WETime, WorkedHours = @WorkedHours, "
 								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
-								+"imageBase64 = @UploadPhoto "
+								+"UploadPhoto = @UploadPhoto "
 								+"WHERE ScheduleTaskId = @ScheduleTaskId";
 				} else {
 					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time, 'Status' : 2,'WorkedHours': WorkedHours,'UploadPhoto' : req.body.imageData};
-					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status,imageBase64 = @UploadPhoto , WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
+					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status,UploadPhoto = @UploadPhoto , WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
 				}
 				queryServe.sqlServe(data,function(resData,affected){
 					updateScheduleTask(req.body.ScheduleTaskId,2,function(){
@@ -199,11 +199,11 @@ var endTask = function(req,response){
 					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status,  WETime = @WETime, "
 								+"WorkedHours = @WorkedHours ,"
 								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
-								+"imageBase64 = @UploadPhoto "
+								+"UploadPhoto = @UploadPhoto "
 								+"WHERE ScheduleTaskId = @ScheduleTaskId";
 				} else {
 					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time,'UploadPhoto' : req.body.imageData, 'WETime' : time,'Status' : 2,'WorkedHours': WorkedHours};
-					data.query = "UPDATE Job SET WHTime = @WHTime, imageBase64 = @UploadPhoto, Status = @Status,  WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
+					data.query = "UPDATE Job SET WHTime = @WHTime, UploadPhoto = @UploadPhoto, Status = @Status,  WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
 				}		
 				queryServe.sqlServe(data,function(resData,affected){
 					updateScheduleTask(req.body.ScheduleTaskId,2,function(){
