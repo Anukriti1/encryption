@@ -30,7 +30,7 @@ CREATE TABLE Job (
   WSTime datetime,
   WETime datetime,
   WHTime datetime,
-  UploadPhoto varbinary,
+  UploadPhoto varbinary(max),
   Status int DEFAULT 0,
   WorkedHours decimal(9,4),
   WSLatitude varchar(50),
@@ -119,8 +119,8 @@ CREATE TABLE TimeClockDetailData (
   InTimeLong varchar(50),
   OutTimeLat varchar(50),
   OutTimeLong varchar(50),
-  InTimePhoto varbinary,
-  OutTimePhoto varbinary
+  InTimePhoto varbinary(max),
+  OutTimePhoto varbinary(max)
 )
 
 
