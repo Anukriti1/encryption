@@ -344,13 +344,12 @@ var emPList = function(req,res){
 	if(req.body && req.body.Id){
 		var data = {};
 		data.input = {"Id" : req.body.Id};
-		data.query = "SELECT Employees.Id AS Employees_Id , Employees.EmployeeName, Project.ProjectName, ScheduleTask.*,TimeClockSummaryData.*"
-		+" FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
-		+"INNER JOIN ScheduleTask ON Employees.Id = ScheduleTask.EmployeeId "
-		+" INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id"
-		+" LEFT JOIN TimeClockSummaryData ON TimeClockSummaryData.EmployeeId = Employees.Id AND TimeClockSummaryData.ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()))"
-		+" WHERE Employees.Id = @Id AND TaskDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()))"
-		+" AND TaskDate < CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()+1))"
+		data.query = "SELECT Employees.Id AS Employees_Id , Employees.EmployeeName, Project.ProjectName, ScheduleTask.*,TimeClockSummaryData.* "
+		+ "FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		+"LEFT JOIN ScheduleTask ON Employees.Id = ScheduleTask.EmployeeId AND TaskDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TaskDate < CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()+1)) "
+		+"LEFT JOIN Project ON ScheduleTask.ProjectId = Project.Id "
+		+"LEFT JOIN TimeClockSummaryData ON TimeClockSummaryData.EmployeeId = Employees.Id AND TimeClockSummaryData.ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) "
+		+" WHERE Employees.Id = @Id"
 		queryServe.sqlServe(data,function(resD,aff){
 			if(resD && resD.message) {res.status(401).json({});}
 			res.status(200).json(resD);
