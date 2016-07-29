@@ -373,6 +373,7 @@ function sendPushNot(resDataTokens,message,callback){
 	},function(){
 		console.log(tokens);
 		sendPush.send_gcm(message,tokens,function(data){
+			console.log(data)
 			callback(data)
 		})
 	})
