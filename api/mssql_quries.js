@@ -17,7 +17,9 @@ exports.sqlServe = function(data,callbackRes){
 		if(data.query){
 			// cheking for input 
 			createReqInp(data.input,request,function(){
+				console.log('got input')
 				request.query(data.query, function(err, recordset,affected) {
+					console.log(err, recordset,affected)
 				    if(err){
 				    	console.log(err);
 				    	callbackRes({'message' : 'error in database query'});
@@ -29,11 +31,11 @@ exports.sqlServe = function(data,callbackRes){
 			callbackRes({'message' : 'missing query'});
 		}
 	}).catch(function(err) {
+		console.log('not connect')
 		callbackRes({'message' : 'error in database connection'});
 		console.log(err)
 	});
 }
-
 
 /**creating input request mssql,
 for preventing sql injection**/
