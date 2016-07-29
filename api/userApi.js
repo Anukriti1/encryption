@@ -31,13 +31,11 @@ var updateDeviceToken = function(req,res){
 		// sending queries to db
 		console.log(data.input);
 		console.log(data.query);
-		setTimeout(function(){
-			queryServe.sqlServe(data,function(resData,affected){
-				if(resData && resData.message) {response.status(401).json({});}
-				console.log(resData,affected)
-				res.status(200).json(affected);
-			});
-		}, 1000);
+		queryServe.sqlServe(data,function(resData,affected){
+						console.log(resData,affected)
+			if(resData && resData.message) {res.status(401).json({});}
+			res.status(200).json(affected);
+		});
 	} else {
 		res.status(401).json({});
 	}
