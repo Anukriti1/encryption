@@ -30,6 +30,7 @@ var updateDeviceToken = function(req,res){
 		data.query = 'UPDATE LoginUser SET DeviceToken = @DeviceToken WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData,affected){
+			console.log(resData,affected)
 			res.status(200).json(affected);
 		});
 	} else {
