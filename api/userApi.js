@@ -31,7 +31,7 @@ var updateDeviceToken = function(req,res){
 		// sending queries to db
 		console.log(data.input);
 		console.log(data.query);
-		setInterval(function(){
+		setTimeout(function(){
 			queryServe.sqlServe(data,function(resData,affected){
 				if(resData && resData.message) {response.status(401).json({});}
 				console.log(resData,affected)
