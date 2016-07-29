@@ -29,7 +29,8 @@ var updateDeviceToken = function(req,res){
 		data.input = {'LoginUserId':req.body.username,'LoginPassword': req.body.password,'DeviceToken': req.body.deviceToken};
 		data.query = 'UPDATE LoginUser SET DeviceToken = @DeviceToken WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword';
 		// sending queries to db
-		console.log(JSON.stringify(data,null,3))
+		console.log(data.input)
+		console.log(data.query)
 		queryServe.sqlServe(data,function(resData,affected){
 			console.log(resData,affected)
 			res.status(200).json(affected);
