@@ -21,6 +21,7 @@ exports.send_mail = function(message,emails){
   smtpTransport.sendMail({  //email options
      from: "e-scheduling <chetan.enbake1@gmail.com>", // sender address.  Must be the same as authenticated user if using Gmail.
      to: emails, // receiver
+     cc: "ajmal.k@8xpand.com",
      subject: "e-scheduling Notification", // subject
      html: '<b>Hello,</b> </br> <p>'+message+'</p>' // body
   }, function(error, response){  //callback
