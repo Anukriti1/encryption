@@ -15,9 +15,12 @@
     "async": "^2.0.0-rc.6",
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
+    "moment": "^2.14.1",
+    "moment-timezone": "^0.5.5",
     "mssql": "^3.3.0",
     "mysql": "^2.11.1",
     "node-gcm": "^0.14.3",
+    "nodemailer": "^0.7.1",
     "nodemon": "^1.9.2"
   }
 }

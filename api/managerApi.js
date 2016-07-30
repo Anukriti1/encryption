@@ -4,7 +4,9 @@ var express = require('express');
 var router = express.Router();
 var queryServe =  require('./mssql_quries');
 var sendPush =  require('./notification');
+var sendMail =  require('./mail');
 var async = require('async');
+
 
 // All project list for a compnay
 var allProjects = function(req, res) {
@@ -127,7 +129,7 @@ var approveOrReject = function(req, res){
 		queryServe.sqlServe(data,function(resData,affected){
 			var searchtoken = {};
 			searchtoken.input = { 'Id1' : req.body.EmployeeId, 'Id2' : req.body.ApproveOrRejectBy};
-			searchtoken.query = "SELECT DeviceToken From LoginUser WHERE EmployeeId IN (@Id1,@Id2)";
+			searchtoken.query = "SELECT DeviceToken,Emailid From LoginUser WHERE EmployeeId IN (@Id1,@Id2)";
 			queryServe.sqlServe(searchtoken,function(resDataTokens){
 				var statusAR = (req.body.ApprovalStatus == 1) ? "Approved":"Rejected";
 				var message = 'Task: '+ req.body.TaskName+' has been '+statusAR;
@@ -160,7 +162,7 @@ function lateOvertimePush(req,resP){
 			// find employee and manager device tokens 
 			var data1 = {};
 			data1.input = {CompanyId : req.body.CompanyId,UserGroupId : req.body.UserGroupId,EmployeeId : req.body.EmployeeId};
-			data1.query = "SELECT DeviceToken FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
+			data1.query = "SELECT DeviceToken,Emailid FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
 			queryServe.sqlServe(data1,function(resD1){
 				if(resD1 && resD1.message) {resP.status(401).json({});}
 				var message = 'Employee '+resD[0].EmployeeName+' reached late';
@@ -201,7 +203,7 @@ var overtimeReq = function(request, response){
 		else {
 			var data1 = {};
 			data1.input = {CompanyId : request.body.CompanyId,UserGroupId : request.body.UserGroupId,EmployeeId : request.body.EmployeeId};
-			data1.query = "SELECT DeviceToken FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
+			data1.query = "SELECT DeviceToken,Emailid FROM LoginUser WHERE (UserGroupId = @UserGroupId OR EmployeeId = @EmployeeId) AND CompanyId = @CompanyId"
 			queryServe.sqlServe(data1,function(resD2){
 				if(resD2 && resD2.message) {response.status(401).json({});}
 				sendPushNot(resD2,request.body.message,function(data2){
@@ -229,7 +231,7 @@ var appRejOTReq = function(request,response) {
 		if(resD1 && resD1.message) {response.status(401).json({});}
 		var data1 = {};
 		data1.input = {EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy};
-		data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId);"
+		data1.query = "SELECT DeviceToken,Emailid,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId);"
 		queryServe.sqlServe(data1,function(resD2,aff2){
 			if(resD2 && resD2.message) {response.status(401).json({});}
 			async.forEach(resD2,function(item, callbackA){
@@ -271,7 +273,7 @@ var clockAccRej = function(req,res) {
 		if(resD1 && resD1.message) {res.status(401).json({});}
 		var data1 = {};
 		data1.input = {'Status': data.input.Status, CompanyId :data.input.CompanyId, EmployeeId : data.input.EmployeeId,ManagerId : data.input.ApproveOrRejectBy,TimeClockSummaryData_Id: data.input.Id};
-		data1.query = "SELECT DeviceToken,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId);"
+		data1.query = "SELECT DeviceToken,Emailid,EmployeeName,Employees.Id FROM LoginUser INNER JOIN Employees ON  Employees.Id = LoginUser.EmployeeId WHERE LoginUser.EmployeeId IN (@EmployeeId,@ManagerId);"
 		+" INSERT INTO TimeClockManageLogData (CompanyId,EmployeeId,TimeClockSummaryData_Id,Status)  VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,@Status);"
 		queryServe.sqlServe(data1,function(resD2,aff1){
 			if(resD2 && resD2.message) {res.status(401).json({});}
@@ -373,9 +375,27 @@ function sendPushNot(resDataTokens,message,callback){
 	},function(){
 		console.log(tokens);
 		sendPush.send_gcm(message,tokens,function(data){
-			console.log(data)
-			callback(data)
+			console.log(data);
+			// Send Emails
+			sendEmail(resDataTokens, message);
+			callback(data);
 		})
+	})
+}
+
+// for sending Email Notification
+function sendEmail(resDataTokens,message){
+	var emails = [];
+	async.forEach(resDataTokens,function(item, callbackA){
+		if((!(item.Emailid == null) && item.Emailid )){
+			emails.push(item.Emailid)
+			callbackA();
+		} else {
+			callbackA();
+		}
+	},function(){
+		emails.toString();
+		sendMail.send_mail(message, emails.toString())
 	})
 }
 
