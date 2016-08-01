@@ -418,6 +418,24 @@ var clockInOut = function(req,response){
 }
 
 
+var getifStartedtask = function(req,res){
+	if(req.body && req.body.EmployeeId){
+		var data = {};
+		data.input = {'EmployeeId': req.body.EmployeeId,'Status': 0};
+		data.query = "SELECT TOP 1 * "+"FROM Job  where Status = @Status AND EmployeeId = @EmployeeId"
+		queryServe.sqlServe(data,function(resData,affected){
+			if(resData && resData.message) {res.status(401).json({});}
+			if(resData && resData.length){
+				response.status(200).json(resData);
+			} else {
+				res.status(404).json({});
+			}
+		})
+	} else {
+		res.status(401).json({});
+	}
+}
+
 // db server date today
 function getDbServerDateToday (callback) {
 	var input = {};
@@ -428,6 +446,7 @@ function getDbServerDateToday (callback) {
 }
 
 // assign apis to router
+router.post('/getifStartedtask',getifStartedtask)
 router.post('/shiftDetail',shiftDetail)
 router.post('/clockInStatus',clockInStatus);
 router.post('/clockInOut',clockInOut);
