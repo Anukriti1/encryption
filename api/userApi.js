@@ -31,7 +31,9 @@ var updateDeviceToken = function(req,res){
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData,affected){
 			if(resData && resData.message) {res.status(401).json({});}
-			res.status(200).json(affected);
+			else{
+			  res.status(200).json(affected);
+			}
 		});
 	} else {
 		res.status(401).json({});
@@ -424,11 +426,11 @@ var getifStartedtask = function(req,res){
 		data.input = {'EmployeeId': req.body.EmployeeId,'Status': 0};
 		data.query = "SELECT TOP 1 * "+"FROM Job  where Status = @Status AND EmployeeId = @EmployeeId"
 		queryServe.sqlServe(data,function(resData,affected){
-			if(resData && resData.message) {res.status(401).json({});}
-			if(resData && resData.length){
-				response.status(200).json(resData);
+			if(resData && resData.message) { res.status(401).json({});}
+			else if(resData && resData.length){
+				res.status(200).json({"start" : 1});
 			} else {
-				res.status(404).json({});
+				res.status(200).json({"start" : 0});
 			}
 		})
 	} else {
