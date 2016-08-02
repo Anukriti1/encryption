@@ -57,7 +57,7 @@ var loginPin = function(req, res){
 
 // list for New/Hold tasks 
 var listUserTask = function(req, res){
-	if(req.body && req.body.CompanyId,req.body.EmployeeId){
+	if(req.body && req.body.CompanyId && req.body.EmployeeId){
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate' : req.body.TaskDate};
 		data.query = 'SELECT  ScheduleTask.Id,ScheduleTask.CompanyId,ScheduleTask.EmployeeId,ScheduleTask.TaskDate,ScheduleTask.TaskName,ScheduleTask.ApprovalStatus '
@@ -72,6 +72,25 @@ var listUserTask = function(req, res){
 	}
 }
 
+// List of tasks b/w dates (Not completed task)
+var listMonthTask = function(req, res){
+	if(req.body && req.body.CompanyId && req.body.EmployeeId && req.body.TaskDate1 && req.body.TaskDate2){
+		var data = {};  
+		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate1' : req.body.TaskDate1,'TaskDate2' :  req.body.TaskDate2};
+		data.query = "SELECT  TaskDate, COUNT(Id) AS Number FROM ScheduleTask WHERE CompanyId = @CompanyId AND EmployeeId =@EmployeeId AND Status <> 2 AND (ScheduleTask.TaskDate between @TaskDate1 AND @TaskDate2) GROUP BY TaskDate;"
+		// sending queries to db
+		queryServe.sqlServe(data,function(resData){
+			if(resData && resData.message) {
+				res.status(404).json({});
+			}
+			else {
+				res.status(200).json({resData});
+			}
+		});
+	} else {
+		res.status(401).json({});
+	}
+}
 
 // for start a new task
 var startTask = function(req,res){
@@ -448,6 +467,7 @@ function getDbServerDateToday (callback) {
 }
 
 // assign apis to router
+router.post('/listMonthTask',listMonthTask)
 router.post('/getifStartedtask',getifStartedtask)
 router.post('/shiftDetail',shiftDetail)
 router.post('/clockInStatus',clockInStatus);
