@@ -72,12 +72,18 @@ var listUserTask = function(req, res){
 	}
 }
 
-// List of tasks b/w dates (Not completed task)
+// List of tasks b/w dates (Not completed task)/for manager all tasks
 var listMonthTask = function(req, res){
 	if(req.body && req.body.CompanyId && req.body.EmployeeId && req.body.TaskDate1 && req.body.TaskDate2){
-		var data = {};  
-		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate1' : req.body.TaskDate1,'TaskDate2' :  req.body.TaskDate2};
-		data.query = "SELECT  TaskDate, COUNT(Id) AS Number FROM ScheduleTask WHERE CompanyId = @CompanyId AND EmployeeId =@EmployeeId AND Status <> 2 AND (ScheduleTask.TaskDate between @TaskDate1 AND @TaskDate2) GROUP BY TaskDate;"
+		if(req.body.isManager){
+			var data = {};  
+			data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate1' : req.body.TaskDate1,'TaskDate2' :  req.body.TaskDate2};
+			data.query = "SELECT  TaskDate, COUNT(Id) AS Number FROM ScheduleTask WHERE CompanyId = @CompanyId AND (ScheduleTask.TaskDate between @TaskDate1 AND @TaskDate2) GROUP BY TaskDate;"
+		} else {
+			var data = {};  
+			data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate1' : req.body.TaskDate1,'TaskDate2' :  req.body.TaskDate2};
+			data.query = "SELECT  TaskDate, COUNT(Id) AS Number FROM ScheduleTask WHERE CompanyId = @CompanyId AND EmployeeId =@EmployeeId AND Status <> 2 AND (ScheduleTask.TaskDate between @TaskDate1 AND @TaskDate2) GROUP BY TaskDate;"
+		}
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 			if(resData && resData.message) {
