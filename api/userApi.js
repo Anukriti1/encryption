@@ -11,7 +11,7 @@ var logIn = function(req, res) {
 	if (req.body && req.body.username && req.body.password){
 		var data = {};
 		data.input = {'LoginUserId':req.body.username,'LoginPassword': req.body.password};
-		data.query = 'SELECT * FROM LoginUser INNER JOIN Employees ON LoginUser.EmployeeId = Employees.Id WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword';
+		data.query = 'SELECT * FROM LoginUser INNER JOIN Employees ON LoginUser.EmployeeId = Employees.Id INNER JOIN Company_Setting ON LoginUser.EmployeeId = Company_Setting.Id WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);

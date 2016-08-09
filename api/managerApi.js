@@ -303,13 +303,25 @@ var clockAccRej = function(req,res) {
 var tClock = function(req,res){
 	if(req.body && req.body.CompanyId && req.body.UserGroupId && req.body.clockInDate){
 		var data = {};
-		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId, 'ClockInDate': req.body.clockInDate};
-		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryDataId "
+		console.log(req.body.EmployeeId);
+		if(req.body.EmployeeId== "" || req.body.EmployeeId== 'undefined'){
+			data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId, 'ClockInDate': req.body.clockInDate};
+			data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryDataId "
 		+" ,TimeClockSummaryData.Status AS SummaryStatus"
 		+" FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"INNER JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
 		+" WHERE ClockInDate = @ClockInDate AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId";
+		}else{
+			data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId, 'ClockInDate': req.body.clockInDate,'EmployeeId': req.body.EmployeeId};
+			data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryDataId "
+		+" ,TimeClockSummaryData.Status AS SummaryStatus"
+		+" FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		+"INNER JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
+		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
+		+" WHERE ClockInDate = @ClockInDate AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId AND TimeClockSummaryData.EmployeeId = @EmployeeId";
+		}
+		
 		queryServe.sqlServe(data,function(resD,aff){
 			if(resD && resD.message) {res.status(401).json({});}
 			res.status(200).json(resD);
