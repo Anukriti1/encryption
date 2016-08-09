@@ -301,15 +301,15 @@ var clockAccRej = function(req,res) {
 // Time Clock list for employees for today
 
 var tClock = function(req,res){
-	if(req.body && req.body.CompanyId && req.body.UserGroupId){
+	if(req.body && req.body.CompanyId && req.body.UserGroupId && req.body.clockInDate){
 		var data = {};
-		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId};
+		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId, 'ClockInDate': req.body.clockInDate};
 		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryDataId "
 		+" ,TimeClockSummaryData.Status AS SummaryStatus"
 		+" FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"INNER JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
-		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC";
+		+" WHERE ClockInDate = @ClockInDate AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId";
 		queryServe.sqlServe(data,function(resD,aff){
 			if(resD && resD.message) {res.status(401).json({});}
 			res.status(200).json(resD);
