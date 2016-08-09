@@ -462,6 +462,34 @@ var getifStartedtask = function(req,res){
 		res.status(401).json({});
 	}
 }
+// Clock in count  of two given dates.
+
+// list of all Clockin employee
+var listClockInMonth = function(req, res){
+		console.log("listClockInMonth");
+	if(req.body && req.body.CompanyId &&  req.body.ClockInDate1 && req.body.ClockInDate2){
+		if(req.body.isManager){
+			var data = {};  
+			data.input = {'CompanyId': req.body.CompanyId, 'ClockInDate1' : req.body.ClockInDate1,'ClockInDate2' :  req.body.ClockInDate2};
+			data.query = "SELECT  ClockInDate, COUNT(Id) AS Number FROM TimeClockSummaryData WHERE CompanyId = @CompanyId AND (TimeClockSummaryData.ClockInDate between @ClockInDate1 AND @ClockInDate2) GROUP BY ClockInDate;"
+		} else {
+			var data = {};
+			data.input = {'CompanyId': req.body.CompanyId, 'ClockInDate1' : req.body.ClockInDate1,'ClockInDate2' :  req.body.ClockInDate2};
+			data.query = "SELECT  ClockInDate, COUNT(Id) AS Number FROM TimeClockSummaryData WHERE CompanyId = @CompanyId AND (TimeClockSummaryData.ClockInDate between @ClockInDate1 AND @ClockInDate2) GROUP BY ClockInDate;"
+		}
+		// sending queries to db
+		queryServe.sqlServe(data,function(resData){
+			if(resData && resData.message) {
+				res.status(404).json({});
+			}
+			else {
+				res.status(200).json({resData});
+			}
+		});
+	} else {
+		res.status(401).json({});
+	}
+}
 
 // db server date today
 function getDbServerDateToday (callback) {
@@ -486,4 +514,5 @@ router.post('/listUserTask', listUserTask);
 router.post('/updateToken', updateDeviceToken);
 router.post('/login', logIn);
 router.post('/loginPin', loginPin);
+router.post('/listClockInMonth', listClockInMonth);
 module.exports = router;
