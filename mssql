@@ -174,15 +174,14 @@ CREATE TABLE Wrkspace (
 
 CREATE TABLE WorkplaceEmployee(
   Id int IDENTITY(1,1) PRIMARY KEY,
-  TimeClockSummaryData_Id int,
   CompanyId bigint,
   EmployeeId bigint,
-  InTime datetime,
-  OutTime datetime,
-  InTimeLat varchar(50),
-  InTimeLong varchar(50),
-  OutTimeLat varchar(50),
-  OutTimeLong varchar(50),
-  InTimePhoto varbinary(max),
-  OutTimePhoto varbinary(max)
-)
+  WorkplaceId bigint
+  )
+  
+CREATE TABLE Company_Setting(
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint,
+  Camera bit,
+  GPS bit
+  )

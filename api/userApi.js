@@ -45,7 +45,7 @@ var loginPin = function(req, res){
 	if(req.body && req.body.pin && req.body.username && req.body.password){
 		var data = {};
 		data.input = {'LoginUserId':req.body.username,'LoginPassword': req.body.password, 'Pincode' : req.body.pin};
-		data.query = 'SELECT * FROM LoginUser INNER JOIN EmployeePincode ON LoginUser.EmployeeId = EmployeePincode.EmployeeId INNER JOIN Employees ON LoginUser.EmployeeId = Employees.Id'
+		data.query = 'SELECT * FROM LoginUser INNER JOIN EmployeePincode ON LoginUser.EmployeeId = EmployeePincode.EmployeeId INNER JOIN Employees ON LoginUser.EmployeeId = Employees.Id INNER JOIN Company_Setting ON LoginUser.EmployeeId = Company_Setting.Id'
 					 +' WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword AND  Pincode = @Pincode';
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);
