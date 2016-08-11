@@ -185,3 +185,10 @@ CREATE TABLE Company_Setting(
   Camera bit,
   GPS bit
   )
+
+
+  CREATE TABLE App_module(
+  Id int IDENTITY(1,1) PRIMARY KEY,
+  CompanyId bigint,
+  AppModule varchar(100)
+)

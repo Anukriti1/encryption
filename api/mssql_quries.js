@@ -11,8 +11,22 @@ var connect_query = db_config.db.type+"://"+db_config.db.username+':'
 This is the root funtion for all queries from ms sql
 example request {"input":{"id":2},"query":"select * from Employees where id = @id"}
 **/
+
+
+	
+	
+	
+sql.connect(connect_query).then(function() {
+		console.log('connected')
+	}).catch(function(err) {
+		console.log('not connect')
+		callbackRes({'message' : 'error in database connection'});
+		console.log(err)
+});
+
+
+
 exports.sqlServe = function(data,callbackRes){
-	sql.connect(connect_query).then(function() {
 		var request = new sql.Request();
 		if(data.query){
 			// cheking for input 
@@ -30,11 +44,6 @@ exports.sqlServe = function(data,callbackRes){
 		} else {
 			callbackRes({'message' : 'missing query'});
 		}
-	}).catch(function(err) {
-		console.log('not connect')
-		callbackRes({'message' : 'error in database connection'});
-		console.log(err)
-	});
 }
 
 /**creating input request mssql,
