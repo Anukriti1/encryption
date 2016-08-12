@@ -56,25 +56,27 @@ var loginPin = function(req, res){
 			// get workspace details for employee and check the 100 meter distance if valid give the response
 			// else login
 			// console.log(resData[0].EmployeeId);
-			
-			if(resData[0].EmployeeId!='undefined' && resData[0].EmployeeId!='undefined' && resData[0].EmployeeId!==null && resData[0].UserGroupId==2){
+			console.log(req.body);
+			if(typeof resData[0].EmployeeId!='undefined' && resData[0].EmployeeId!==null && typeof resData[0].UserGroupId!='undefined' && resData[0].UserGroupId==2){
 				var data = {};
 				data.input = {'CompanyId' :resData[0].CompanyId}
 				data.query = "SELECT * FROM Wrkspace";
-				queryServe.sqlServe(data, function(resData){
+				queryServe.sqlServe(data, function(resData1){
 					console.log("Inner called");
+					console.log(resData1);
 					/*var dmiles = geolib.getDistance(
    						 {latitude: 51.5103, longitude: 7.49347},
     					 {latitude: "51° 31' N", longitude: "7° 28' E"}
 						);*/
 					// checks if 51.525, 7.4575 is within a radius of 5km from 51.5175, 7.4678
+					console.log(req.body.latitude);
 					var dmiles = geolib.isPointInCircle(
-    				{latitude: resData[0].Latitude, longitude:resData[0].Longitude},
     				{latitude: req.body.latitude, longitude:req.body.longitude},
-   					 10
+    				{latitude: resData1[0].Latitude, longitude:resData1[0].Longitude},
+   					 5000
 					);
-					
-					if(dmiles<=10){
+					console.log(dmiles);
+					if(dmiles){
 						res.status(200).json(resData);
 					}else{
 						res.status(401).json({});
@@ -82,8 +84,10 @@ var loginPin = function(req, res){
 
 					console.log(resData);
 				})
+			} else{
+				res.status(200).json(resData);
 			}
-			res.status(200).json(resData);
+			
 		});
 	} else {
 		res.status(401).json({});
@@ -326,7 +330,14 @@ var clockInOut = function(req,response){
 	if(!req.body.imageData){
 		req.body.imageData = '';
 	}
-	req.body.imageData = Buffer.from(req.body.imageData, 'base64');
+	// check for undefind imagedata if nothing then put default value
+	if(typeof req.body.imageData!='undefind' && req.body.imageData!=null){
+		req.body.imageData = Buffer.from(req.body.imageData, 'base64');
+	}else{
+		req.body.imageData = 'NULL';
+	}
+	
+
 	// 1 for punch in 2 for punchout
 	var clockAction = req.body.clockAction;
 	var lat = req.body.CurrentPosition.latitude.toString();
