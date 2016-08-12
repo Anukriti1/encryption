@@ -46,7 +46,7 @@ var loginPin = function(req, res){
 	if(req.body && req.body.pin && req.body.username && req.body.password){
 		var data = {};
 		data.input = {'LoginUserId':req.body.username,'LoginPassword': req.body.password, 'Pincode' : req.body.pin};
-		data.query = 'SELECT LoginUser.EmployeeId,LoginUser.CompanyId, LoginUser.Emailid, LoginUser.UserGroupId ,EmployeePincode.Pincode, Company_Setting.Camera, Company_Setting.GPS,App_module.AppModule,Company.CompanyName, LoginUser.Name as EmployeeName  FROM LoginUser LEFT JOIN EmployeePincode ON LoginUser.CompanyId = EmployeePincode.CompanyId INNER JOIN Company ON LoginUser.CompanyId = Company.Id INNER  JOIN Company_Setting ON LoginUser.CompanyId = Company_Setting.CompanyId INNER JOIN App_module ON LoginUser.CompanyId = App_module.CompanyId'
+		data.query = 'SELECT LoginUser.EmployeeId,*,LoginUser.Name as EmployeeName  FROM LoginUser LEFT JOIN EmployeePincode ON LoginUser.CompanyId = EmployeePincode.CompanyId INNER JOIN Company ON LoginUser.CompanyId = Company.Id INNER  JOIN Company_Setting ON LoginUser.CompanyId = Company_Setting.CompanyId INNER JOIN App_module ON LoginUser.CompanyId = App_module.CompanyId'
 					 +' WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword AND  Pincode = @Pincode';
 		queryServe.sqlServe(data,function(resData){
 			console.log("hererererererere");
@@ -56,27 +56,29 @@ var loginPin = function(req, res){
 			// get workspace details for employee and check the 100 meter distance if valid give the response
 			// else login
 			// console.log(resData[0].EmployeeId);
-			console.log(resData[0].UserGroupId);
-			console.log(resData[0].EmployeeId)
-			console.log(resData[0].EmployeeId!==null && resData[0].UserGroupId==2)
-			if(resData[0].EmployeeId!==null && resData[0].UserGroupId==2){
+			
+			if(resData[0].EmployeeId!='undefined' && resData[0].EmployeeId!='undefined' && resData[0].EmployeeId!==null && resData[0].UserGroupId==2){
 				var data = {};
 				data.input = {'CompanyId' :resData[0].CompanyId}
 				data.query = "SELECT * FROM Wrkspace";
 				queryServe.sqlServe(data, function(resData){
 					console.log("Inner called");
-					var dmiles = geolib.getDistance(
+					/*var dmiles = geolib.getDistance(
    						 {latitude: 51.5103, longitude: 7.49347},
     					 {latitude: "51° 31' N", longitude: "7° 28' E"}
-						)
-					/*// checks if 51.525, 7.4575 is within a radius of 5km from 51.5175, 7.4678
-					geolib.isPointInCircle(
-    				{latitude: 51.525, longitude: 7.4575},
-    				{latitude: 51.5175, longitude: 7.4678},
-   					 5000
+						);*/
+					// checks if 51.525, 7.4575 is within a radius of 5km from 51.5175, 7.4678
+					var dmiles = geolib.isPointInCircle(
+    				{latitude: resData[0].Latitude, longitude:resData[0].Longitude},
+    				{latitude: req.body.latitude, longitude:req.body.longitude},
+   					 10
 					);
-					*/
-					console.log(dmiles);
+					
+					if(dmiles<=10){
+						res.status(200).json(resData);
+					}else{
+						res.status(401).json({});
+					}
 
 					console.log(resData);
 				})
