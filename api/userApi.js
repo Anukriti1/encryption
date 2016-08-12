@@ -12,7 +12,7 @@ var logIn = function(req, res) {
 	if (req.body && req.body.username && req.body.password){
 		var data = {};
 		data.input = {'LoginUserId':req.body.username,'LoginPassword': req.body.password};
-		data.query = 'SELECT *, LoginUser.Name as EmployeeName FROM LoginUser INNER JOIN Company ON LoginUser.CompanyId = Company.Id INNER  JOIN Company_Setting ON LoginUser.CompanyId = Company_Setting.CompanyId INNER JOIN App_module ON LoginUser.CompanyId=App_module.CompanyId WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword';
+		data.query = 'SELECT LoginUser.EmployeeId as empid,*,LoginUser.Name as EmployeeName  FROM LoginUser INNER JOIN Company ON LoginUser.CompanyId = Company.Id INNER  JOIN Company_Setting ON LoginUser.CompanyId = Company_Setting.CompanyId INNER JOIN App_module ON LoginUser.CompanyId=App_module.CompanyId WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);
@@ -46,7 +46,7 @@ var loginPin = function(req, res){
 	if(req.body && req.body.pin && req.body.username && req.body.password){
 		var data = {};
 		data.input = {'LoginUserId':req.body.username,'LoginPassword': req.body.password, 'Pincode' : req.body.pin};
-		data.query = 'SELECT LoginUser.EmployeeId,*,LoginUser.Name as EmployeeName  FROM LoginUser LEFT JOIN EmployeePincode ON LoginUser.CompanyId = EmployeePincode.CompanyId INNER JOIN Company ON LoginUser.CompanyId = Company.Id INNER  JOIN Company_Setting ON LoginUser.CompanyId = Company_Setting.CompanyId INNER JOIN App_module ON LoginUser.CompanyId = App_module.CompanyId'
+		data.query = 'SELECT LoginUser.EmployeeId as empid,*,LoginUser.Name as EmployeeName  FROM LoginUser LEFT JOIN EmployeePincode ON LoginUser.CompanyId = EmployeePincode.CompanyId INNER JOIN Company ON LoginUser.CompanyId = Company.Id INNER  JOIN Company_Setting ON LoginUser.CompanyId = Company_Setting.CompanyId INNER JOIN App_module ON LoginUser.CompanyId = App_module.CompanyId'
 					 +' WHERE LoginUserId = @LoginUserId AND LoginPassword = @LoginPassword AND  Pincode = @Pincode';
 		queryServe.sqlServe(data,function(resData){
 			console.log("hererererererere");
@@ -57,7 +57,7 @@ var loginPin = function(req, res){
 			// else login
 			// console.log(resData[0].EmployeeId);
 			console.log(req.body);
-			if(typeof resData[0].EmployeeId!='undefined' && resData[0].EmployeeId!==null && typeof resData[0].UserGroupId!='undefined' && resData[0].UserGroupId==2){
+			if(typeof resData[0].empid!='undefined' && resData[0].empid!==null && typeof resData[0].UserGroupId!='undefined' && resData[0].UserGroupId==2){
 				var data = {};
 				data.input = {'CompanyId' :resData[0].CompanyId}
 				data.query = "SELECT * FROM Wrkspace";
