@@ -95,6 +95,9 @@ var loginPin = function(req, res){
 }
 // list for New/Hold tasks 
 var listUserTask = function(req, res){
+    console.log("******************************");
+    console.log(req.body)
+    console.log("******************************");
 	if(req.body && req.body.CompanyId && req.body.EmployeeId){
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate' : req.body.TaskDate};
@@ -102,6 +105,7 @@ var listUserTask = function(req, res){
 		+', Job.* , Project.ProjectName FROM ScheduleTask LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id'
 		+  ' WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.EmployeeId = @EmployeeId AND ScheduleTask.TaskDate = @TaskDate AND (Job.Status IN (0, 1) OR Job.Status IS NULL)';
 		// sending queries to db
+        console.log(data)
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);
 		});
@@ -142,6 +146,7 @@ var listMonthTask = function(req, res){
 // for start a new task
 var startTask = function(req,res){
 	if(req.body && req.body.CompanyId && req.body.EmployeeId && req.body.ScheduleTaskId){
+
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId': req.body.EmployeeId,'ScheduleTaskId':req.body.ScheduleTaskId,'WSTime': new Date()};
 		if(req.body.CurrentPosition && req.body.CurrentPosition.latitude && req.body.CurrentPosition.longitude){
@@ -516,11 +521,11 @@ var getifStartedtask = function(req,res){
 	if(req.body && req.body.EmployeeId){
 		var data = {};
 		data.input = {'EmployeeId': req.body.EmployeeId,'Status': 0};
-		data.query = "SELECT TOP 1 * "+"FROM Job  where Status = @Status AND EmployeeId = @EmployeeId"
+		data.query = "SELECT TOP 1 * "+"FROM Job INNER JOIN ScheduleTask ON ScheduleTask.Id = Job.ScheduleTaskId where Job.Status = @Status AND Job.EmployeeId = @EmployeeId"
 		queryServe.sqlServe(data,function(resData,affected){
 			if(resData && resData.message) { res.status(401).json({});}
 			else if(resData && resData.length){
-				res.status(200).json({"start" : 1});
+				res.status(200).json({"start" : 1,"task": resData});
 			} else {
 				res.status(200).json({"start" : 0});
 			}
