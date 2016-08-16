@@ -114,13 +114,16 @@ var listUserTask = function(req, res){
 var listMonthTask = function(req, res){
 	if(req.body && req.body.CompanyId && req.body.EmployeeId && req.body.TaskDate1 && req.body.TaskDate2){
 		if(req.body.isManager){
+            console.log('If it is Manager_________listMonthTask__________');
 			var data = {};  
 			data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate1' : req.body.TaskDate1,'TaskDate2' :  req.body.TaskDate2};
 			data.query = "SELECT  TaskDate, COUNT(Id) AS Number FROM ScheduleTask WHERE CompanyId = @CompanyId AND (ScheduleTask.TaskDate between @TaskDate1 AND @TaskDate2) GROUP BY TaskDate;"
 		} else {
+            console.log('If it is Employee_________listMonthTask__________');
 			var data = {};  
 			data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate1' : req.body.TaskDate1,'TaskDate2' :  req.body.TaskDate2};
-			data.query = "SELECT  TaskDate, COUNT(Id) AS Number FROM ScheduleTask WHERE CompanyId = @CompanyId AND EmployeeId =@EmployeeId AND Status <> 2 AND (ScheduleTask.TaskDate between @TaskDate1 AND @TaskDate2) GROUP BY TaskDate;"
+			data.query = "SELECT  TaskDate, COUNT(Id) AS Number FROM ScheduleTask WHERE CompanyId = @CompanyId AND EmployeeId=@EmployeeId AND Status <> 2 AND (ScheduleTask.TaskDate between @TaskDate1 AND @TaskDate2) GROUP BY TaskDate;"
+            console.log(data);
 		}
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
@@ -225,7 +228,7 @@ var resumeTask = function(req,response){
 
 var endTask = function(req,response){
 	if(req.body && req.body.ScheduleTaskId && req.body.imageData){
-		req.body.imageData = Buffer.from(req.body.imageData, 'base64');
+        req.body.imageData = req.body.imageData ?  Buffer.from(req.body.imageData, 'base64') : 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 		var time = new Date;
 		var input = {};
 		input.input = {'ScheduleTaskId':req.body.ScheduleTaskId};
@@ -332,7 +335,7 @@ var clockInOut = function(req,response){
 	}
 	// check for undefind imagedata if nothing then put default value
 	if(typeof req.body.imageData!='undefind' && req.body.imageData!=null){
-		req.body.imageData = Buffer.from(req.body.imageData, 'base64');
+        req.body.imageData = req.body.imageData ?  Buffer.from(req.body.imageData, 'base64') : null;
 	}else{
 		req.body.imageData = 'NULL';
 	}
@@ -370,8 +373,15 @@ var clockInOut = function(req,response){
 									InTimeLong : long ,
 									InTimePhoto: req.body.imageData
 								};
-								inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong,InTimePhoto)"
-								+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong,@InTimePhoto)"
+
+                                inp.query =   req.body.imageData ? "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+                                    +" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)" : "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+                                    +" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+
+                                console.log('********************inp.input#################');
+                                console.log( inp.query);
+                                console.log('********************inp.input#################');
+
 								queryServe.sqlServe(inp,function(resp,aff){
 									if(resp && resp.message) {response.status(401).json({});}	
 									response.status(200).json({'aff' : aff , 'firstPunchIn' : 1,TimeClockSummaryData_Id : resData1[0]['']});
@@ -381,7 +391,8 @@ var clockInOut = function(req,response){
 								// smething wrong
 							}
 						})
-					} else {				
+					} else {
+
 						if(Date.parse(resData[0].ClockInDate) == Date.parse(DateToday)){
 							// same date record exists
 							// only update to detail Data
@@ -395,8 +406,13 @@ var clockInOut = function(req,response){
 								InTimeLong : long ,
 								InTimePhoto: req.body.imageData
 							};
-							inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong,InTimePhoto)"
-							+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong,@InTimePhoto)"
+                            console.log('************Else part********inp.input#################');
+                            console.log(inp.input);
+                            console.log('*************Else part********inp.input#################');
+
+							inp.query= req.body.imageData ? "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong,InTimePhoto)"
+							+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong,@InTimePhoto)" : "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+                                +" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
 							queryServe.sqlServe(inp,function(resp,aff){
 								if(resp && resp.message) {response.status(401).json({});}	
 								response.status(200).json(aff);
@@ -420,8 +436,13 @@ var clockInOut = function(req,response){
 										InTimeLong : long ,
 										InTimePhoto: req.body.imageData
 									};
-									inp.query="INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong,InTimePhoto)"
-									+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong,@InTimePhoto)"
+									inp.query= req.body.imageData ? "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong,InTimePhoto)"
+									+" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong,@InTimePhoto)" : "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+                                        +" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+
+                                    console.log('***************inTimephoto*****inp.input#################');
+                                    console.log( inp.query);
+                                    console.log('********************inp.input#################');
 									queryServe.sqlServe(inp,function(resp,aff){
 										if(resp && resp.message) {response.status(401).json({});}	
 										response.status(200).json({'aff' : aff , 'firstPunchIn' : 1,TimeClockSummaryData_Id : resData1[0]['']});
@@ -464,7 +485,7 @@ var clockInOut = function(req,response){
 												OutTimePhoto : req.body.imageData,
 												Id : resData4[0].Id  
 											};
-											inp.query="UPDATE TimeClockDetailData SET OutTime = @OutTime, OutTimeLat = @OutTimeLat, OutTimeLong = @OutTimeLong, OutTimePhoto = @OutTimePhoto  WHERE Id = @Id"
+											inp.query= req.body.imageData ? "UPDATE TimeClockDetailData SET OutTime = @OutTime, OutTimeLat = @OutTimeLat, OutTimeLong = @OutTimeLong, OutTimePhoto = @OutTimePhoto  WHERE Id = @Id" : "UPDATE TimeClockDetailData SET OutTime = @OutTime, OutTimeLat = @OutTimeLat, OutTimeLong = @OutTimeLong  WHERE Id = @Id"
 											queryServe.sqlServe(inp,function(resp,aff){
 												if(resp && resp.message) {response.status(401).json({});};
 												response.status(200).json(aff);
@@ -515,13 +536,18 @@ var listClockInMonth = function(req, res){
 		console.log("listClockInMonth");
 	if(req.body && req.body.CompanyId &&  req.body.ClockInDate1 && req.body.ClockInDate2){
 		if(req.body.isManager){
+
+            console.log('If it is Manager___________________');
 			var data = {};  
 			data.input = {'CompanyId': req.body.CompanyId, 'ClockInDate1' : req.body.ClockInDate1,'ClockInDate2' :  req.body.ClockInDate2};
 			data.query = "SELECT  ClockInDate, COUNT(Id) AS Number FROM TimeClockSummaryData WHERE CompanyId = @CompanyId AND (TimeClockSummaryData.ClockInDate between @ClockInDate1 AND @ClockInDate2) GROUP BY ClockInDate;"
+            console.log(data);
 		} else {
+            console.log('If it is Employee___________________');
 			var data = {};
-			data.input = {'CompanyId': req.body.CompanyId, 'ClockInDate1' : req.body.ClockInDate1,'ClockInDate2' :  req.body.ClockInDate2};
-			data.query = "SELECT  ClockInDate, COUNT(Id) AS Number FROM TimeClockSummaryData WHERE CompanyId = @CompanyId AND (TimeClockSummaryData.ClockInDate between @ClockInDate1 AND @ClockInDate2) GROUP BY ClockInDate;"
+			data.input = {'CompanyId': req.body.CompanyId, 'ClockInDate1' : req.body.ClockInDate1,'ClockInDate2' :  req.body.ClockInDate2, 'EmployeeId': req.body.EmployeeId};
+			data.query = "SELECT  ClockInDate, COUNT(Id) AS Number FROM TimeClockSummaryData WHERE CompanyId = @CompanyId AND EmployeeId = @EmployeeId AND (TimeClockSummaryData.ClockInDate between @ClockInDate1 AND @ClockInDate2) GROUP BY ClockInDate;"
+            console.log(data);
 		}
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
