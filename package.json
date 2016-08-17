@@ -21,6 +21,7 @@
     "mysql": "^2.11.1",
     "node-gcm": "^0.14.3",
     "nodemailer": "^0.7.1",
-    "nodemon": "^1.9.2"
+    "nodemon": "^1.9.2",
+    "geolib":"2.0.21"
   }
 }
