@@ -116,7 +116,7 @@ var listUserTask = function(req, res){
 
 // List of tasks b/w dates (Not completed task)/for manager all tasks
 var listMonthTask = function(req, res){
-	if(req.body && req.body.CompanyId && req.body.EmployeeId && req.body.TaskDate1 && req.body.TaskDate2){
+	if(req.body && req.body.CompanyId && req.body.TaskDate1 && req.body.TaskDate2){
 		if(req.body.isManager){
             console.log('If it is Manager_________listMonthTask__________');
 			var data = {};  
