@@ -298,7 +298,7 @@ var clockInStatus = function(req,response){
 	if(req.body.EmployeeId){
 		var data = {};
 		data.input = {'EmployeeId': req.body.EmployeeId};
-		data.query = "SELECT TOP 1 *, "+
+		data.query = "SELECT TOP 4 *, "+
 		"DATEPART(yyyy,InTime) AS Year, DATEPART(mm,InTime) AS Month, DATEPART(dd,InTime) AS Day,"
 		+" DATEPART(yyyy,GETDATE()) AS Year1, DATEPART(mm,GETDATE()) AS Month1, DATEPART(dd,GETDATE()) AS Day1"
 		+" from TimeClockDetailData  WHERE EmployeeId = @EmployeeId ORDER BY InTime DESC";
