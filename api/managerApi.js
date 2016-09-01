@@ -43,14 +43,31 @@ var listTask = function(req, res){
 	if(req.body && req.body.CompanyId && req.body.TaskDate){
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId, 'TaskDate' : req.body.TaskDate};
-		data.query = 'SELECT  ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.TaskDate = @TaskDate';
+		data.query = 'SELECT  ScheduleTask.Id AS task_id , ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName  FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.TaskDate = @TaskDate';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
+
 			res.status(200).json(resData);
 		});
 	} else {
 		res.status(401).json({});
 	}
+}
+
+// This api use for getting details of any particular task..
+var taskDetail = function(req,res){
+    if(req.query['task_id']){
+        var data = {};
+        data.input = {'Id' : parseInt(req.query['task_id'])};
+        data.query = 'SELECT   *  FROM ScheduleTask WHERE ScheduleTask.Id = @Id';
+        // sending queries to db
+        console.log(data);
+        queryServe.sqlServe(data,function(resData){
+            res.status(200).json(resData);
+        });
+    } else {
+        res.status(401).json({});
+    }
 }
 // Create a task for multiple employees 
 
@@ -456,4 +473,5 @@ router.post('/create_task',create_task);
 router.post('/allProjectsList',allProjects);
 router.post('/allEmp',allEmp);
 router.post('/tClock', tClock);
+router.get('/particularTaskDetail', taskDetail);
 module.exports = router;
