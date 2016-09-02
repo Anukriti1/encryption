@@ -102,7 +102,7 @@ var listUserTask = function(req, res){
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId,'EmployeeId':req.body.EmployeeId, 'TaskDate' : req.body.TaskDate};
 		data.query = 'SELECT  ScheduleTask.Id,ScheduleTask.CompanyId,ScheduleTask.EmployeeId,ScheduleTask.TaskDate,ScheduleTask.TaskName,ScheduleTask.ApprovalStatus '
-		+', Job.* , Project.ProjectName FROM ScheduleTask LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id'
+		+', Job.* , Project.ProjectName FROM ScheduleTask LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId LEFT JOIN Project ON ScheduleTask.ProjectId = Project.Id'
 		+  ' WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.EmployeeId = @EmployeeId AND ScheduleTask.TaskDate = @TaskDate AND (Job.Status IN (0, 1) OR Job.Status IS NULL)';
 		// sending queries to db
         console.log(data)

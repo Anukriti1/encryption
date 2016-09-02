@@ -43,7 +43,8 @@ var listTask = function(req, res){
 	if(req.body && req.body.CompanyId && req.body.TaskDate){
 		var data = {};
 		data.input = {'CompanyId': req.body.CompanyId, 'TaskDate' : req.body.TaskDate};
-		data.query = 'SELECT  ScheduleTask.Id AS task_id , ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName  FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.TaskDate = @TaskDate';
+		data.query = 'SELECT  ScheduleTask.Id AS task_id ,ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId LEFT JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.TaskDate = @TaskDate';
+//		data.query = 'SELECT  ScheduleTask.Id AS task_id , ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName  FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.TaskDate = @TaskDate';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 
@@ -425,14 +426,13 @@ var emPList = function(req,res){
 
 var emPListDetails = function(req,res){
 	if(req.body){
-		console.log("++++++++++++++++I am hrere in emPListDetails++++++++++");
 		var data = {};
 		data.input = {};
 		data.query = "SELECT Employees.Id AS Employees_Id , Employees.EmployeeName, Project.ProjectName, ScheduleTask.*,TimeClockSummaryData.* "
 		+ "FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
-		+"LEFT JOIN ScheduleTask ON Employees.Id = ScheduleTask.EmployeeId AND TaskDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TaskDate < CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE()+1)) "
+		+"LEFT JOIN ScheduleTask ON Employees.Id = ScheduleTask.EmployeeId AND TaskDate = CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TaskDate = CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) "
 		+"LEFT JOIN Project ON ScheduleTask.ProjectId = Project.Id "
-		+"LEFT JOIN TimeClockSummaryData ON TimeClockSummaryData.EmployeeId = Employees.Id AND TimeClockSummaryData.ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) "
+		+"LEFT JOIN TimeClockSummaryData ON TimeClockSummaryData.EmployeeId = Employees.Id  "
 		queryServe.sqlServe(data,function(resD,aff){
 			if(resD && resD.message) {res.status(401).json({});}
 			res.status(200).json(resD);
