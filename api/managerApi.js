@@ -59,7 +59,8 @@ var taskDetail = function(req,res){
     if(req.query['task_id']){
         var data = {};
         data.input = {'Id' : parseInt(req.query['task_id'])};
-        data.query = 'SELECT   *  FROM ScheduleTask WHERE ScheduleTask.Id = @Id';
+        data.query = 'SELECT ScheduleTask.*,Job.* FROM ScheduleTask INNER JOIN Job ON  Job.ScheduleTaskId = ScheduleTask.Id WHERE ScheduleTask.Id = @Id';
+
         // sending queries to db
         console.log(data);
         queryServe.sqlServe(data,function(resData){
@@ -67,6 +68,24 @@ var taskDetail = function(req,res){
         });
     } else {
         res.status(401).json({});
+    }
+}
+// This api use for getting details of any particular Time Clock Detail..
+var timeClockDetail = function(req,res){
+    console.log("################################### ");
+    console.log(req.query);
+    console.log("################################### ");
+    if(req.query['TimeClockSummaryDataId']){
+        var data = {};
+        data.input = {'TimeClockSummaryDataId' : parseInt(req.query['TimeClockSummaryDataId'])};
+        data.query = 'SELECT top 1 *  FROM TimeClockDetailData WHERE  TimeClockSummaryData_Id = @TimeClockSummaryDataId ORDER BY id DESC';
+        // sending queries to db
+        console.log(data);
+        queryServe.sqlServe(data,function(resData){
+            res.status(200).json(resData);
+        });
+    } else {
+        res.status(401).json({error: "invalid input"});
     }
 }
 // Create a task for multiple employees 
@@ -474,4 +493,5 @@ router.post('/allProjectsList',allProjects);
 router.post('/allEmp',allEmp);
 router.post('/tClock', tClock);
 router.get('/particularTaskDetail', taskDetail);
+router.get('/getTimeClockDetail', timeClockDetail);
 module.exports = router;
