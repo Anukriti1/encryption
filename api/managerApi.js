@@ -233,8 +233,8 @@ var overtimeReq = function(request, response){
 	data.input = {
 		CompanyId : request.body.CompanyId,EmployeeId : request.body.EmployeeId,TimeClockSummaryData_Id: request.body.TimeClockSummaryData_Id
 	};
-	data.query = "INSERT INTO TimeClockOTRequest (CompanyId,EmployeeId,TimeClockSummaryData_Id,RequestTime) "
-			   + " VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,GETDATE())";
+	data.query = "INSERT INTO TimeClockOTRequest (CompanyId,EmployeeId,TimeClockSummaryData_Id,RequestTime,OtrequestDate) "
+			   + " VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,GETDATE(), CURDATE())";
 	queryServe.sqlServe(data,function(resD1,aff){
 		if((resD1 && resD1.message) || (aff && (aff < 1))) {response.status(401).json({});}
 		else {
@@ -402,7 +402,48 @@ var listOvertime = function(req,res){
 		res.status(401).json({});
 	}
 }
+//---------------------------------------------------------------------------
+/*var listOverTimeRequestInMonth = function(req,res){
+	if(req.body && req.body.CompanyId && req.body.UserGroupId && req.body.ClockInDate1){
+		var data = {};
+		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId, 'ClockInDate1' : req.body.ClockInDate1,'ClockInDate2' :  req.body.ClockInDate2};
+		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryData_Id, COUNT(Id) AS Number"
+		+",TimeClockOTRequest.Status AS OTStatus "
+		+"FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
+		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
+		+"INNER JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
+		+" WHERE (ClockInDate between @ClockInDate1 AND @ClockInDate2) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId GROUP BY ClockInDate";
+		console.log("++++++++++got listOverTimeRequestInMonth +++++++++++++++++");
+		console.log(data.input)
+		queryServe.sqlServe(data,function(resD,aff){
+			if(resD && resD.message) {res.status(401).json({});}
+			res.status(200).json(resD);
+		})
+	} else {
+		res.status(401).json({});
+	}
+}*/
+var listOverTimeRequestInMonth = function(req, res){
+	if(req.body && req.body.CompanyId &&  req.body.ClockInDate1 && req.body.ClockInDate2){
+			var data = {};  
+			data.input = {"CompanyId" : req.body.CompanyId, 'ClockInDate1' : req.body.ClockInDate1,'ClockInDate2' :  req.body.ClockInDate2};
+			data.query = "SELECT  OtrequestDate, COUNT(Id) AS Number FROM TimeClockOTRequest WHERE CompanyId = @CompanyId AND (TimeClockOTRequest.OtrequestDate between @ClockInDate1 AND @ClockInDate2) GROUP BY OtrequestDate;"
+            console.log(data);
+		// sending queries to db
+		queryServe.sqlServe(data,function(resData){
+			if(resData && resData.message) {
+				res.status(404).json({});
+			}
+			else {
+				res.status(200).json({resData});
+			}
+		});
+	} else {
+		res.status(401).json({});
+	}
+}
 
+//---------------------------------------------------------------------------
 // Employee with his current date tasks and clocks
 var emPList = function(req,res){
 	if(req.body && req.body.Id){
@@ -492,6 +533,7 @@ router.post('/create_task',create_task);
 router.post('/allProjectsList',allProjects);
 router.post('/allEmp',allEmp);
 router.post('/tClock', tClock);
+router.post('/listOverTimeRequestInMonth',listOverTimeRequestInMonth);
 router.get('/particularTaskDetail', taskDetail);
 router.get('/getTimeClockDetail', timeClockDetail);
 module.exports = router;
