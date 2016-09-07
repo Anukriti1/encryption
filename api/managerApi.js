@@ -231,10 +231,10 @@ function lateOvertimePush(req,resP){
 var overtimeReq = function(request, response){
 	var data = {};
 	data.input = {
-		CompanyId : request.body.CompanyId,EmployeeId : request.body.EmployeeId,TimeClockSummaryData_Id: request.body.TimeClockSummaryData_Id
+		CompanyId : request.body.CompanyId,EmployeeId : request.body.EmployeeId,TimeClockSummaryData_Id: request.body.TimeClockSummaryData_Id, OtrequestDate: request.body.OtrequestDate
 	};
 	data.query = "INSERT INTO TimeClockOTRequest (CompanyId,EmployeeId,TimeClockSummaryData_Id,RequestTime,OtrequestDate) "
-			   + " VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,GETDATE(), CURDATE())";
+			   + " VALUES (@CompanyId,@EmployeeId,@TimeClockSummaryData_Id,GETDATE(), @OtrequestDate)";
 	queryServe.sqlServe(data,function(resD1,aff){
 		if((resD1 && resD1.message) || (aff && (aff < 1))) {response.status(401).json({});}
 		else {
@@ -385,15 +385,16 @@ var tClock = function(req,res){
 // List of Employees for today clock In With Overtime Request
 
 var listOvertime = function(req,res){
+	console.log("+++++++++++++++++Here list Overtime +++++++++++++++++++++++++++++++++++++");
 	if(req.body && req.body.CompanyId && req.body.UserGroupId){
 		var data = {};
-		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId};
+		data.input = {"CompanyId" : req.body.CompanyId, 'UserGroupId' : req.body.UserGroupId,'ClockInDate':req.body.ClockInDate};
 		data.query = "SELECT EmployeeName, Employees.Id AS Employee_Id ,TimeClockSummaryData.*,TimeClockOTRequest.*,TimeClockOTRequest.Id AS TimeClockOTRequest_Id, TimeClockSummaryData.Id AS TimeClockSummaryData_Id "
 		+",TimeClockOTRequest.Status AS OTStatus "
 		+"FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"LEFT JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"INNER JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
-		+" WHERE ClockInDate >= CONVERT(DateTime, DATEDIFF(DAY, 0, GETDATE())) AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC";
+		+" WHERE ClockInDate =@ClockInDate AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId ORDER BY ClockInDate DESC";
 		queryServe.sqlServe(data,function(resD,aff){
 			if(resD && resD.message) {res.status(401).json({});}
 			res.status(200).json(resD);
