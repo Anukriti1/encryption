@@ -338,7 +338,7 @@ var clockAccRej = function(req,res) {
 // Time Clock list for employees for today
 
 var tClock = function(req,res){
-	if(req.body && req.body.CompanyId && req.body.UserGroupId && req.body.clockInDate){
+	if(req.body && req.body.CompanyId && req.body.clockInDate){
 		var data = {};
         console.log("*******************************");
         console.log("***********inside Tclock*******");
@@ -354,7 +354,7 @@ var tClock = function(req,res){
 		+" FROM Employees INNER JOIN LoginUser ON Employees.Id = LoginUser.EmployeeId "
 		+"INNER JOIN TimeClockSummaryData ON Employees.Id = TimeClockSummaryData.EmployeeId "
 		+"LEFT JOIN TimeClockOTRequest ON TimeClockOTRequest.TimeClockSummaryData_Id = TimeClockSummaryData.Id "
-		+" WHERE ClockInDate = @ClockInDate AND TimeClockSummaryData.CompanyId = @CompanyId AND LoginUser.UserGroupId = @UserGroupId";
+		+" WHERE ClockInDate = @ClockInDate AND TimeClockSummaryData.CompanyId = @CompanyId";
 		}else{
             console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             console.log("inside if not");
