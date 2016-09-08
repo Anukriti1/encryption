@@ -152,8 +152,11 @@ function generateInputQuery(data,values,keys,callback){
 
 // accept or reject task by a manager
 var approveOrReject = function(req, res){
+	console.log("------req.body ---------approveOrReject--------------------");
+	console.log(req.body );
+	console.log("-------------req.body ------approveOrReject----------------");
 	if(req.body && req.body.ApprovalStatus && req.body.ScheduleTaskId 
-		&& req.body.ApproveOrRejectBy && req.body.EmployeeId && req.body.TaskName){
+		 && req.body.EmployeeId && req.body.TaskName){
 		var data = {};
 		data.input = {
 			'ApprovalStatus': req.body.ApprovalStatus,
@@ -165,11 +168,16 @@ var approveOrReject = function(req, res){
 					+"  WHERE Id = @Id";
 		queryServe.sqlServe(data,function(resData,affected){
 			var searchtoken = {};
-			searchtoken.input = { 'Id1' : req.body.EmployeeId, 'Id2' : req.body.ApproveOrRejectBy};
-			searchtoken.query = "SELECT DeviceToken,Emailid From LoginUser WHERE EmployeeId IN (@Id1,@Id2)";
+			searchtoken.input = { 'Id1' : req.body.EmployeeId, 'Id2' : req.body.ApproveOrRejectBy , 'companyId': req.body.companyId};
+			searchtoken.query = "SELECT DeviceToken,Emailid From LoginUser WHERE EmployeeId IN (@Id1,@Id2) or EmployeeId is NULL and companyId = @companyId";
+			//"SELECT DeviceToken,Emailid From LoginUser WHERE EmployeeId IN (@Id1,@Id2)";
+			
 			queryServe.sqlServe(searchtoken,function(resDataTokens){
 				var statusAR = (req.body.ApprovalStatus == 1) ? "Approved":"Rejected";
 				var message = 'Task: '+ req.body.TaskName+' has been '+statusAR;
+	console.log("--------------searchtoken--------------------");
+	console.log(searchtoken);
+	console.log("-------------------searchtoken----------------");
 				sendPushNot(resDataTokens,message,function(data){
 					res.status(200).json({'affected': affected});
 				})	
