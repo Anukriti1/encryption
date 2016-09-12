@@ -335,12 +335,12 @@ var clockInStatusE = function(req,response){
 	}
 }
 
-
+// shiftDetaills for employees.......
 var shiftDetail = function(req,response){
 	if(req.body.EmployeeId){
 		var data = {};
 		data.input = {'EmployeeId': req.body.EmployeeId, 'CompanyId': req.body.CompanyId};
-		data.query = "SELECT ShiftInTime FROM Shift INNER JOIN ShiftDetail ON Shift.Id = ShiftDetail.ShiftId INNER JOIN ShiftType ON ShiftType.ID = ShiftDetail.ShiftTypeId INNER JOIN ShiftEmployee ON Shift.Id = ShiftEmployee.ShiftId INNER JOIN Employees ON ShiftEmployee.EmployeeId = Employees.Id WHERE ShiftEmployee.EmployeeId = @EmployeeId AND ShiftDetail.CompanyId = @CompanyId";
+		data.query = "SELECT ShiftInTime, ShiftOutTime  FROM Shift INNER JOIN ShiftDetail ON Shift.Id = ShiftDetail.ShiftId INNER JOIN ShiftType ON ShiftType.ID = ShiftDetail.ShiftTypeId INNER JOIN ShiftEmployee ON Shift.Id = ShiftEmployee.ShiftId INNER JOIN Employees ON ShiftEmployee.EmployeeId = Employees.Id WHERE ShiftEmployee.EmployeeId = @EmployeeId AND ShiftDetail.CompanyId = @CompanyId";
 		queryServe.sqlServe(data,function(resData,affected){
 			if(resData && resData.message) {response.status(401).json({});}
 			response.status(200).json(resData);
