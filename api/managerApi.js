@@ -60,7 +60,7 @@ var taskDetail = function(req,res){
     if(req.query['task_id']){
         var data = {};
         data.input = {'Id' : parseInt(req.query['task_id'])};
-        data.query = 'SELECT ScheduleTask.*,Job.* FROM ScheduleTask INNER JOIN Job ON  Job.ScheduleTaskId = ScheduleTask.Id WHERE ScheduleTask.Id = @Id';
+        data.query = 'SELECT ScheduleTask.*,Job.* FROM ScheduleTask LEFT JOIN Job ON  Job.ScheduleTaskId = ScheduleTask.Id WHERE ScheduleTask.Id = @Id';
 
         // sending queries to db
         console.log(data);
