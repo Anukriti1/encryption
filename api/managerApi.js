@@ -47,7 +47,7 @@ var listTask = function(req, res){
 //		data.query = 'SELECT  ScheduleTask.Id AS task_id , ScheduleTask.*  ,Employees.* , Job.* , Project.ProjectName  FROM ScheduleTask INNER JOIN Employees ON ScheduleTask.EmployeeId = Employees.Id LEFT JOIN Job ON ScheduleTask.Id = Job.ScheduleTaskId INNER JOIN Project ON ScheduleTask.ProjectId = Project.Id  WHERE ScheduleTask.CompanyId = @CompanyId AND ScheduleTask.TaskDate = @TaskDate';
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
-
+			resData = makeAllJson(resData)
 			res.status(200).json(resData);
 		});
 	} else {
@@ -527,6 +527,68 @@ function sendEmail(resDataTokens,message){
 		emails.toString();
 		sendMail.send_mail(message, emails.toString())
 	})
+}
+
+function makeAllJson(arg) {
+    // body...
+
+    for(var i=0; i<arg.length;i++){
+             if(!arg[i].ProjectName){
+                 arg[i].ProjectName = "No Project";
+              }
+        }
+    	var data = arg
+    	var empListId = [];
+    for(var i = 0;i< data.length;i++){
+        empListId.push(data[i].EmployeeId[0]);
+    	}
+    
+			empListId = uniq(empListId);
+    function uniq(a) {
+        return Array.from(new Set(a));
+    }
+
+
+	var taskList = [];
+	for(var k=0;k<empListId.length; k++){
+    var taskObj = {};
+    taskObj.allTask = [];
+    for(var j=0;j<data.length;j++  ){
+        var  tskObj = {};
+        if(data[j].EmployeeId[0] == empListId[k]){
+            taskObj.EmployeeId = empListId[k];
+            taskObj.CompanyId = data[j].CompanyId[0];
+            taskObj.EmployeeName = data[j].EmployeeName;
+            taskObj.EmployeeCode = data[j].EmployeeCode;
+            tskObj.TaskDate = data[j].TaskDate;
+            tskObj.TaskName = data[j].TaskName;
+            tskObj.StartDateTime = data[j].StartDateTime;
+            tskObj.EndDateTime = data[j].EndDateTime;
+            tskObj.ProjectName = data[j].ProjectName;
+            tskObj.Hours = data[j].Hours;
+                tskObj.Status = data[j].Status;
+                tskObj.ApprovalStatus= data[j].ApprovalStatus;
+                tskObj.CreatedBy= data[j].CreatedBy;
+                tskObj.ApproveOrRejectBy= data[j].ApproveOrRejectBy;
+                tskObj.IsOverTime= data[j].IsOverTime;
+                tskObj.ScheduleTaskId= data[j].ScheduleTaskId;
+                tskObj.WSTime= data[j].WSTime;
+                tskObj.WETime= data[j].WETime;
+                tskObj.WHTime= data[j].WHTime;
+                tskObj.UploadPhoto= data[j].UploadPhoto;
+                tskObj.WorkedHours= data[j].WorkedHours;
+                tskObj.WSLatitude= data[j].WSLatitude;
+                tskObj.WSLongitude= data[j].WSLongitude;
+                tskObj.WELatitude= data[j].WELatitude;
+                tskObj.WELongitude= data[j].WELongitude;
+                tskObj.imageBase64= data[j].imageBase64;
+                tskObj.task_id= data[j].task_id;
+            taskObj.allTask.push(tskObj);
+        }   
+    }
+    taskList.push(taskObj);
+}
+ return taskList;
 }
 
 router.post('/emPList',emPList);
