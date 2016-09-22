@@ -232,8 +232,18 @@ var resumeTask = function(req,response){
 }
 
 var endTask = function(req,response){
-	if(req.body && req.body.ScheduleTaskId && req.body.imageData){
-        req.body.imageData = req.body.imageData ?  Buffer.from(req.body.imageData, 'base64') : 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+	console.log("endTask ");
+	if(!req.body.imageData){
+		req.body.imageData = '';
+	}
+	// check for undefind imagedata if nothing then put default value
+	if(typeof req.body.imageData!='undefind' && req.body.imageData!=null){
+        req.body.imageData = req.body.imageData ?  Buffer.from(req.body.imageData, 'base64') : null;
+	}else{
+		req.body.imageData = 'NULL';
+	}
+	if(req.body && req.body.ScheduleTaskId){
+        // req.body.imageData = req.body.imageData ?  Buffer.from(req.body.imageData, 'base64') : 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 		var time = new Date;
 		var input = {};
 		input.input = {'ScheduleTaskId':req.body.ScheduleTaskId};
@@ -248,14 +258,17 @@ var endTask = function(req,response){
 					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time, 'Status' : 2,'WorkedHours': WorkedHours,
 									'WELatitude' : req.body.CurrentPosition.latitude.toString(), 'WELongitude': req.body.CurrentPosition.longitude.toString(),
 									'UploadPhoto' : req.body.imageData};
-					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status, "
+					data.query = req.body.imageData? "UPDATE Job SET WHTime = @WHTime,Status = @Status, "
 								+"WETime = @WETime, WorkedHours = @WorkedHours, "
 								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
 								+"UploadPhoto = @UploadPhoto "
+								+"WHERE ScheduleTaskId = @ScheduleTaskId":"UPDATE Job SET WHTime = @WHTime,Status = @Status, "
+								+"WETime = @WETime, WorkedHours = @WorkedHours, "
+								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
 								+"WHERE ScheduleTaskId = @ScheduleTaskId";
 				} else {
 					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time, 'Status' : 2,'WorkedHours': WorkedHours,'UploadPhoto' : req.body.imageData};
-					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status,UploadPhoto = @UploadPhoto , WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
+					data.query = req.body.imageData? "UPDATE Job SET WHTime = @WHTime,Status = @Status,UploadPhoto = @UploadPhoto , WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId":"UPDATE Job SET WHTime = @WHTime,Status = @Status , WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
 				}
 				queryServe.sqlServe(data,function(resData,affected){
 					updateScheduleTask(req.body.ScheduleTaskId,2,function(){
@@ -270,14 +283,17 @@ var endTask = function(req,response){
 					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time,
 								'Status' : 2,'WorkedHours': WorkedHours, 'WELatitude' : req.body.CurrentPosition.latitude.toString(),
 								'WELongitude': req.body.CurrentPosition.longitude.toString(), 'UploadPhoto' : req.body.imageData};
-					data.query = "UPDATE Job SET WHTime = @WHTime,Status = @Status,  WETime = @WETime, "
+					data.query = req.body.imageData? "UPDATE Job SET WHTime = @WHTime,Status = @Status,  WETime = @WETime, "
 								+"WorkedHours = @WorkedHours ,"
 								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
 								+"UploadPhoto = @UploadPhoto "
+								+"WHERE ScheduleTaskId = @ScheduleTaskId" :"UPDATE Job SET WHTime = @WHTime,Status = @Status,  WETime = @WETime, "
+								+"WorkedHours = @WorkedHours ,"
+								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
 								+"WHERE ScheduleTaskId = @ScheduleTaskId";
 				} else {
 					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time,'UploadPhoto' : req.body.imageData, 'WETime' : time,'Status' : 2,'WorkedHours': WorkedHours};
-					data.query = "UPDATE Job SET WHTime = @WHTime, UploadPhoto = @UploadPhoto, Status = @Status,  WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
+					data.query = req.body.imageData? "UPDATE Job SET WHTime = @WHTime, UploadPhoto = @UploadPhoto, Status = @Status,  WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId" :"UPDATE Job SET WHTime = @WHTime, Status = @Status,  WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
 				}		
 				queryServe.sqlServe(data,function(resData,affected){
 					updateScheduleTask(req.body.ScheduleTaskId,2,function(){
@@ -322,6 +338,7 @@ var clockInStatusE = function(req,response){
 		"DATEPART(yyyy,InTime) AS Year, DATEPART(mm,InTime) AS Month, DATEPART(dd,InTime) AS Day,"
 		+" DATEPART(yyyy,GETDATE()) AS Year1, DATEPART(mm,GETDATE()) AS Month1, DATEPART(dd,GETDATE()) AS Day1"
 		+" from TimeClockDetailData  WHERE EmployeeId = @EmployeeId ORDER BY InTime DESC";
+	
 		queryServe.sqlServe(data,function(resData,affected){
 			// checking if last date is for today or not
 			if(resData && resData.length && resData[0].Year && (resData[0].Year === resData[0].Year1) && (resData[0].Month === resData[0].Month1) && (resData[0].Day === resData[0].Day1)){
