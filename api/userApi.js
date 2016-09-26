@@ -4,7 +4,6 @@ var express = require('express');
 var router = express.Router();
 var queryServe =  require('./mssql_quries.js');
 var geolib = require('geolib');
-
 // apis 
 // for login api
 var logIn = function(req, res) {
@@ -232,15 +231,20 @@ var resumeTask = function(req,response){
 }
 
 var endTask = function(req,response){
-	console.log("endTask ");
+	console.log(req.body.ScheduleTaskId);
+	var UploadImage;
+	console.log(req.body.ScheduleTaskId);
 	if(!req.body.imageData){
 		req.body.imageData = '';
 	}
 	// check for undefind imagedata if nothing then put default value
 	if(typeof req.body.imageData!='undefind' && req.body.imageData!=null){
-        req.body.imageData = req.body.imageData ?  Buffer.from(req.body.imageData, 'base64') : null;
+        req.body.imageData = req.body.imageData ? (Buffer.from(req.body.imageData, 'base64')) : null;
+        console.log(req.body.imageData);
+        UploadImage = req.body.imageData
+        console.log("req.body.imageData")
 	}else{
-		req.body.imageData = 'NULL';
+		UploadImage = 'NULL';
 	}
 	if(req.body && req.body.ScheduleTaskId){
         // req.body.imageData = req.body.imageData ?  Buffer.from(req.body.imageData, 'base64') : 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
@@ -257,7 +261,7 @@ var endTask = function(req,response){
 				if(req.body.CurrentPosition && req.body.CurrentPosition.latitude && req.body.CurrentPosition.longitude){
 					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time, 'Status' : 2,'WorkedHours': WorkedHours,
 									'WELatitude' : req.body.CurrentPosition.latitude.toString(), 'WELongitude': req.body.CurrentPosition.longitude.toString(),
-									'UploadPhoto' : req.body.imageData};
+									'UploadPhoto' : UploadImage};
 					data.query = req.body.imageData? "UPDATE Job SET WHTime = @WHTime,Status = @Status, "
 								+"WETime = @WETime, WorkedHours = @WorkedHours, "
 								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
@@ -267,7 +271,7 @@ var endTask = function(req,response){
 								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
 								+"WHERE ScheduleTaskId = @ScheduleTaskId";
 				} else {
-					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time, 'Status' : 2,'WorkedHours': WorkedHours,'UploadPhoto' : req.body.imageData};
+					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time, 'Status' : 2,'WorkedHours': WorkedHours,'UploadPhoto' : UploadImage};
 					data.query = req.body.imageData? "UPDATE Job SET WHTime = @WHTime,Status = @Status,UploadPhoto = @UploadPhoto , WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId":"UPDATE Job SET WHTime = @WHTime,Status = @Status , WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
 				}
 				queryServe.sqlServe(data,function(resData,affected){
@@ -282,7 +286,7 @@ var endTask = function(req,response){
 				if(req.body.CurrentPosition && req.body.CurrentPosition.latitude && req.body.CurrentPosition.longitude){
 					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time, 'WETime' : time,
 								'Status' : 2,'WorkedHours': WorkedHours, 'WELatitude' : req.body.CurrentPosition.latitude.toString(),
-								'WELongitude': req.body.CurrentPosition.longitude.toString(), 'UploadPhoto' : req.body.imageData};
+								'WELongitude': req.body.CurrentPosition.longitude.toString(), 'UploadPhoto' : UploadImage};
 					data.query = req.body.imageData? "UPDATE Job SET WHTime = @WHTime,Status = @Status,  WETime = @WETime, "
 								+"WorkedHours = @WorkedHours ,"
 								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
@@ -292,7 +296,7 @@ var endTask = function(req,response){
 								+"WELatitude = @WELatitude, WELongitude = @WELongitude, "
 								+"WHERE ScheduleTaskId = @ScheduleTaskId";
 				} else {
-					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time,'UploadPhoto' : req.body.imageData, 'WETime' : time,'Status' : 2,'WorkedHours': WorkedHours};
+					data.input = {'ScheduleTaskId':req.body.ScheduleTaskId,'WHTime': time,'UploadPhoto' : UploadImage, 'WETime' : time,'Status' : 2,'WorkedHours': WorkedHours};
 					data.query = req.body.imageData? "UPDATE Job SET WHTime = @WHTime, UploadPhoto = @UploadPhoto, Status = @Status,  WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId" :"UPDATE Job SET WHTime = @WHTime, Status = @Status,  WETime = @WETime, WorkedHours = @WorkedHours WHERE ScheduleTaskId = @ScheduleTaskId";
 				}		
 				queryServe.sqlServe(data,function(resData,affected){
@@ -378,11 +382,14 @@ var clockInOut = function(req,response){
 	}
 	// check for undefind imagedata if nothing then put default value
 	if(typeof req.body.imageData!='undefind' && req.body.imageData!=null){
-        req.body.imageData = req.body.imageData ?  Buffer.from(req.body.imageData, 'base64') : null;
+		var  b64string = req.body.imageData;
+        var buf = req.body.imageData ?  Buffer.from(b64string, 'base64') : null;
+        	req.body.imageData = buf;
 	}else{
 		req.body.imageData = 'NULL';
 	}
 	
+	// var buf = Buffer.from(b64string, 'base64');
 
 	// 1 for punch in 2 for punchout
 	var clockAction = req.body.clockAction;
@@ -417,13 +424,13 @@ var clockInOut = function(req,response){
 									InTimePhoto: req.body.imageData
 								};
 
-                                inp.query =   req.body.imageData ? "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
-                                    +" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)" : "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
-                                    +" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
+	              inp.query =   req.body.imageData ? "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+	                  +" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)" : "INSERT INTO TimeClockDetailData (TimeClockSummaryData_Id,CompanyId,EmployeeId,InTime,InTimeLat,InTimeLong)"
+	                  +" VALUES (@TimeClockSummaryData_Id,@CompanyId,@EmployeeId,@InTime,@InTimeLat,@InTimeLong)"
 
-                                console.log('********************inp.input#################');
-                                console.log( inp.query);
-                                console.log('********************inp.input#################');
+		              console.log('********************inp.input#################');
+		              console.log( inp.query);
+		              console.log('********************inp.input#################');
 
 								queryServe.sqlServe(inp,function(resp,aff){
 									if(resp && resp.message) {response.status(401).json({});}	
