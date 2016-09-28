@@ -28,7 +28,7 @@ var allEmp = function(req, res) {
 	if(req.body && req.body.CompanyId){
 		var data = {};
 		data.input = {'CompanyId':req.body.CompanyId,'UserGroupId' : 9};
-		data.query = 'SELECT Employees.* FROM Employees INNER JOIN LoginUser ON LoginUser.EmployeeId =  Employees.Id WHERE Employees.CompanyId = @CompanyId AND UserGroupId = @UserGroupId;'
+		data.query = 'SELECT Employees.* FROM Employees INNER JOIN LoginUser ON LoginUser.EmployeeId =  Employees.Id WHERE Employees.CompanyId = @CompanyId;'
 		// sending queries to db
 		queryServe.sqlServe(data,function(resData){
 			res.status(200).json(resData);
