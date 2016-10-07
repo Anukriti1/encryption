@@ -2,10 +2,10 @@ module.exports = {
 	
 	db: {
 		type : 'mssql',
-		username : 'DB_A0B3E1_ionicdb_admin' ,
+		username : 'DB_A110FC_chetan123_admin' ,
 		password : 'testing123',
-		database_name : 'DB_A0B3E1_ionicdb',
-		host : 'SQL5023.Smarterasp.net',
+		database_name : 'DB_A110FC_chetan123',
+		host : 'sql5031.smarterasp.net',
 		connectionTimeout : 99000,
 		requestTimeout : 99000,
 		pool: {
