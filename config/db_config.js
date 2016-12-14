@@ -2,10 +2,10 @@ module.exports = {
 	
 	db: {
 		type : 'mssql',
-		username : 'DB_A110FC_chetan123_admin' ,
-		password : 'testing123',
-		database_name : 'DB_A110FC_chetan123',
-		host : 'sql5031.smarterasp.net',
+		username : 'DB_A14FFB_mysql_admin' ,
+		password : 'enbake123',
+		database_name : 'DB_A14FFB_mysql',
+		host : 'sql5032.smarterasp.net',
 		connectionTimeout : 99000,
 		requestTimeout : 99000,
 		pool: {
@@ -15,3 +15,4 @@ module.exports = {
 	    }
 	}
 }
+
